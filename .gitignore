@@ -1,0 +1,22 @@
+.DS_Store
+Thumbs.db
+
+# IDE/editor folders.
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local environment and temporary files.
+.env
+*.log
+*.tmp
+*.bak
+
+# Moodle/plugin packaging output.
+*.zip
+*.tar
+*.tar.gz
+vendor/
+node_modules/
+

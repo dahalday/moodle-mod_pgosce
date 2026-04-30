@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="PG OSCE">
+  <rect x="1" y="1" width="22" height="22" rx="5" fill="#3f9aaa"/>
+  <path d="M6.7 5.2h10.6c.8 0 1.5.7 1.5 1.5v12c0 .8-.7 1.5-1.5 1.5H6.7c-.8 0-1.5-.7-1.5-1.5v-12c0-.8.7-1.5 1.5-1.5z" fill="#fff"/>
+  <path d="M9.3 4.4h5.4c.4 0 .8.3.8.8v1.2H8.5V5.2c0-.5.3-.8.8-.8z" fill="#e8f5f7"/>
+  <path d="M8 11.8h1.8l1.1-3.1 1.7 6.1 1.1-3h2.4" fill="none" stroke="#3f9aaa" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8.2 16.9l1.4 1.3 2.5-2.8" fill="none" stroke="#3f9aaa" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M13.8 17.9h2.5" fill="none" stroke="#3f9aaa" stroke-width="1.3" stroke-linecap="round"/>
+</svg>
