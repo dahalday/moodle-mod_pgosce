@@ -109,6 +109,7 @@ function pgosce_delete_instance($id) {
     }
     pgosce_delete_attempts($id);
     pgosce_delete_rubric($id, $context);
+    $DB->delete_records('pgosce_assessor', ['pgosceid' => $id]);
     $DB->delete_records('pgosce', ['id' => $id]);
     pgosce_grade_item_delete($pgosce);
 
@@ -427,6 +428,11 @@ function pgosce_extend_settings_navigation(settings_navigation $settings, naviga
     $context = context_module::instance($PAGE->cm->id);
     if (has_capability('mod/pgosce:manage', $context)) {
         $node->add(get_string('managerubric', 'pgosce'), new moodle_url('/mod/pgosce/manage.php', ['id' => $PAGE->cm->id]));
+    }
+    if (has_capability('mod/pgosce:assignassessors', $context)) {
+        $node->add(get_string('assignassessors', 'pgosce'), new moodle_url('/mod/pgosce/assign.php', ['id' => $PAGE->cm->id]));
+    }
+    if (has_capability('mod/pgosce:import', $context)) {
         $node->add(get_string('giftimportexport', 'pgosce'), new moodle_url('/mod/pgosce/gift.php', ['id' => $PAGE->cm->id]));
     }
     if (has_capability('mod/pgosce:export', $context)) {

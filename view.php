@@ -30,8 +30,10 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($pgosce->name));
 echo format_module_intro('pgosce', $pgosce, $cm->id);
 
-$canassess = has_capability('mod/pgosce:assess', $context);
+$canassess = pgosce_can_assess_station($pgosce, $context);
 $canmanage = has_capability('mod/pgosce:manage', $context);
+$canassign = has_capability('mod/pgosce:assignassessors', $context);
+$canimport = has_capability('mod/pgosce:import', $context);
 $canexport = has_capability('mod/pgosce:export', $context);
 $hasrubric = pgosce_get_total_maxmark($pgosce->id) > 0;
 $rubric = pgosce_get_rubric($pgosce->id);
@@ -61,12 +63,19 @@ if ($showinstructions) {
     echo $OUTPUT->notification(get_string('nostationinstructions', 'pgosce'), 'info');
 }
 
-if ($canmanage || $canexport) {
+if ($canmanage || $canassign || $canimport || $canexport) {
     echo html_writer::start_div('mb-3');
     if ($canmanage) {
         echo html_writer::link(new moodle_url('/mod/pgosce/manage.php', ['id' => $cm->id]),
             get_string('managerubric', 'pgosce'), ['class' => 'btn btn-primary mr-1']);
         echo ' ';
+    }
+    if ($canassign) {
+        echo html_writer::link(new moodle_url('/mod/pgosce/assign.php', ['id' => $cm->id]),
+            get_string('assignassessors', 'pgosce'), ['class' => 'btn btn-secondary mr-1']);
+        echo ' ';
+    }
+    if ($canimport) {
         echo html_writer::link(new moodle_url('/mod/pgosce/gift.php', ['id' => $cm->id]),
             get_string('giftimportexport', 'pgosce'), ['class' => 'btn btn-secondary mr-1']);
     }
@@ -123,6 +132,9 @@ if ($canassess) {
         echo html_writer::table($table);
     }
 } else {
+    if (has_capability('mod/pgosce:assess', $context) && !pgosce_has_full_access($context)) {
+        echo $OUTPUT->notification(get_string('notassignedassessor', 'pgosce'), 'info');
+    }
     if (!empty($pgosce->displaystudentreports)) {
         echo html_writer::link(new moodle_url('/mod/pgosce/report.php', ['id' => $cm->id, 'userid' => $USER->id]),
             get_string('viewownreport', 'pgosce'), ['class' => 'btn btn-primary']);

@@ -21,6 +21,9 @@ $student = core_user::get_user($userid, '*', MUST_EXIST);
 require_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/pgosce:assess', $context);
+if (!pgosce_can_assess_station($pgosce, $context)) {
+    throw new moodle_exception('notassignedassessor', 'pgosce');
+}
 
 $criteria = pgosce_get_criteria($pgosce->id);
 if (!$criteria) {

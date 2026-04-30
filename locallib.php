@@ -813,3 +813,104 @@ function pgosce_get_students(context_module $context) {
     }
     return $users;
 }
+
+/**
+ * Does this user have unrestricted PG OSCE management access?
+ *
+ * @param context_module $context
+ * @param int|null $userid
+ * @return bool
+ */
+function pgosce_has_full_access(context_module $context, $userid = null) {
+    return has_capability('mod/pgosce:manage', $context, $userid) ||
+        has_capability('mod/pgosce:assignassessors', $context, $userid) ||
+        has_capability('moodle/site:config', context_system::instance(), $userid);
+}
+
+/**
+ * Is the user assigned to assess this station, either directly or by course default?
+ *
+ * @param stdClass $pgosce
+ * @param int $userid
+ * @return bool
+ */
+function pgosce_is_assigned_assessor(stdClass $pgosce, $userid) {
+    global $DB;
+
+    return $DB->record_exists('pgosce_assessor', [
+        'course' => $pgosce->course,
+        'pgosceid' => 0,
+        'userid' => $userid,
+    ]) || $DB->record_exists('pgosce_assessor', [
+        'course' => $pgosce->course,
+        'pgosceid' => $pgosce->id,
+        'userid' => $userid,
+    ]);
+}
+
+/**
+ * Can this user assess this specific PG OSCE station?
+ *
+ * @param stdClass $pgosce
+ * @param context_module $context
+ * @param int|null $userid
+ * @return bool
+ */
+function pgosce_can_assess_station(stdClass $pgosce, context_module $context, $userid = null) {
+    global $USER;
+
+    if ($userid === null) {
+        $userid = $USER->id;
+    }
+    if (!has_capability('mod/pgosce:assess', $context, $userid)) {
+        return false;
+    }
+    if (pgosce_has_full_access($context, $userid)) {
+        return true;
+    }
+
+    return pgosce_is_assigned_assessor($pgosce, $userid);
+}
+
+/**
+ * Get possible non-editing teacher assessors for assignment.
+ *
+ * @param context_module $context
+ * @return array
+ */
+function pgosce_get_assignable_assessors(context_module $context) {
+    $users = get_enrolled_users($context, 'mod/pgosce:assess', 0, 'u.*', 'u.lastname, u.firstname', 0, 0, true);
+    foreach ($users as $key => $user) {
+        if (pgosce_has_full_access($context, $user->id)) {
+            unset($users[$key]);
+        }
+    }
+
+    return $users;
+}
+
+/**
+ * Save assigned assessors for a course default or a single station.
+ *
+ * @param int $courseid
+ * @param int $pgosceid Zero means all PG OSCE stations in the course.
+ * @param array $userids
+ */
+function pgosce_save_assessor_assignments($courseid, $pgosceid, array $userids) {
+    global $DB;
+
+    $DB->delete_records('pgosce_assessor', ['course' => $courseid, 'pgosceid' => $pgosceid]);
+    $now = time();
+    foreach (array_unique($userids) as $userid) {
+        if (!$userid) {
+            continue;
+        }
+        $DB->insert_record('pgosce_assessor', (object)[
+            'course' => $courseid,
+            'pgosceid' => $pgosceid,
+            'userid' => $userid,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+    }
+}

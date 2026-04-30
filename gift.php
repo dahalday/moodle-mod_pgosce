@@ -19,7 +19,7 @@ $pgosce = $DB->get_record('pgosce', ['id' => $cm->instance], '*', MUST_EXIST);
 
 require_login($course, true, $cm);
 $context = context_module::instance($cm->id);
-require_capability('mod/pgosce:manage', $context);
+require_capability('mod/pgosce:import', $context);
 
 $PAGE->set_url('/mod/pgosce/gift.php', ['id' => $id]);
 $PAGE->set_context($context);

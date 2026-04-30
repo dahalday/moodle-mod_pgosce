@@ -25,6 +25,9 @@ require_capability('mod/pgosce:view', $context);
 $viewown = ($userid == $USER->id);
 if (!$viewown) {
     require_capability('mod/pgosce:viewreports', $context);
+    if (!pgosce_has_full_access($context) && !pgosce_is_assigned_assessor($pgosce, $USER->id)) {
+        throw new moodle_exception('notassignedassessor', 'pgosce');
+    }
 } else if (empty($pgosce->displaystudentreports)) {
     throw new moodle_exception('reportnotavailable', 'pgosce');
 }

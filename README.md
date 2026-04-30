@@ -20,6 +20,7 @@
 - Excel-style CSV exports for averaged marker scores and individual marker scores
 - Detailed CSV exports for criterion-level audit data
 - PG OSCE GIFT-style rubric import/export for preparing stations from Word documents
+- Assessor assignment for non-editing teachers by course default or by individual station
 - Moodle backup/restore support, so course activity duplication copies the OSCE setup and rubric
 - Moodle activity icons in `pix/icon.svg` and `pix/monologo.svg`
 - Moodle course reset options for deleting assessment attempts/grades and optionally deleting station rubrics
@@ -67,6 +68,10 @@ php admin/cli/upgrade.php
 4. Use **Save and finalize** to push the calculated mark into the Moodle gradebook.
 5. Export all criterion-level data as CSV for Excel analysis.
 6. Use **PG OSCE GIFT import/export** to reuse or prepare rubrics as plain text.
+
+Non-editing teachers can assess only when they are assigned as a course default OSCE assessor or
+assigned to the individual station. They do not receive rubric editing, station import/export or marks
+download permissions by default. Editing teachers, managers and admins keep full access.
 
 Teachers can turn **Show section instructions to students** on or off in the activity settings or from
 the **Edit rubric** page. When enabled, students can see the section names and section descriptions

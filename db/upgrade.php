@@ -114,5 +114,33 @@ function xmldb_pgosce_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026042914, 'pgosce');
     }
 
+    if ($oldversion < 2026043010) {
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('pgosce_assessor');
+
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('course', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('pgosceid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $table->add_index('courseuser', XMLDB_INDEX_NOTUNIQUE, ['course', 'userid']);
+            $table->add_index('coursepgosceuser', XMLDB_INDEX_UNIQUE, ['course', 'pgosceid', 'userid']);
+            $dbman->create_table($table);
+        }
+
+        $teacherroles = get_archetype_roles('teacher');
+        foreach ($teacherroles as $role) {
+            unassign_capability('mod/pgosce:manage', $role->id);
+            unassign_capability('mod/pgosce:export', $role->id);
+            unassign_capability('mod/pgosce:import', $role->id);
+            unassign_capability('mod/pgosce:assignassessors', $role->id);
+        }
+
+        upgrade_mod_savepoint(true, 2026043010, 'pgosce');
+    }
+
     return true;
 }
