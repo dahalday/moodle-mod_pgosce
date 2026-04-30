@@ -25,10 +25,9 @@ $PAGE->set_context($context);
 $PAGE->set_cm($cm, $course);
 $PAGE->set_title(format_string($pgosce->name));
 $PAGE->set_heading($course->fullname);
+$PAGE->requires->css(new moodle_url('/mod/pgosce/styles.css'));
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($pgosce->name));
-echo format_module_intro('pgosce', $pgosce, $cm->id);
 
 $canassess = pgosce_can_assess_station($pgosce, $context);
 $canmanage = has_capability('mod/pgosce:manage', $context);
@@ -39,32 +38,57 @@ $hasrubric = pgosce_get_total_maxmark($pgosce->id) > 0;
 $rubric = pgosce_get_rubric($pgosce->id);
 $showinstructions = $rubric && ($canassess || $canmanage || !empty($pgosce->showstudentinstructions));
 
+echo html_writer::start_div('pgosce-shell');
+echo html_writer::start_div('pgosce-hero');
+echo html_writer::tag('h2', format_string($pgosce->name));
+echo html_writer::start_div('pgosce-hero-meta');
+echo html_writer::tag('span',
+    html_writer::span(get_string('grade', 'pgosce'), 'pgosce-stat-label') .
+    html_writer::span(format_float($pgosce->grade, 2), 'pgosce-stat-value'),
+    ['class' => 'pgosce-stat']);
+echo html_writer::tag('span',
+    html_writer::span(get_string('status', 'pgosce'), 'pgosce-stat-label') .
+    html_writer::span($hasrubric ? get_string('rubric', 'pgosce') : get_string('createrubricfirst', 'pgosce'),
+        'pgosce-stat-value'),
+    ['class' => 'pgosce-stat']);
+echo html_writer::end_div();
+echo html_writer::end_div();
+
+echo html_writer::div(format_module_intro('pgosce', $pgosce, $cm->id), 'pgosce-panel pgosce-panel-muted');
+
 if ($showinstructions) {
+    echo html_writer::start_div('pgosce-panel');
     echo $OUTPUT->heading(get_string('candidateinstructions', 'pgosce'), 3);
-    echo html_writer::start_div('pgosce-candidate-instructions mb-3');
+    echo html_writer::start_div('pgosce-candidate-instructions');
+    $sectionnumber = 1;
     foreach ($rubric as $section) {
         if (empty($section['name']) && empty($section['description'])) {
             continue;
         }
-        echo html_writer::start_div('pgosce-candidate-section mb-3');
-        if (!empty($section['name'])) {
-            echo $OUTPUT->heading(format_string($section['name']), 4);
-        }
+        echo html_writer::start_tag('details', ['class' => 'pgosce-section-card', 'open' => 'open']);
+        echo html_writer::start_tag('summary');
+        echo html_writer::start_div('pgosce-section-title');
+        echo html_writer::span($sectionnumber, 'pgosce-section-number');
+        echo html_writer::span(format_string($section['name']), 'pgosce-section-name');
+        echo html_writer::end_div();
+        echo html_writer::end_tag('summary');
         if (!empty($section['description'])) {
             echo html_writer::div(
                 pgosce_format_editor_content($context, PGOSCE_FILEAREA_SECTION, $section['id'], $section['description']),
-                'pgosce-candidate-section-description'
+                'pgosce-section-description'
             );
         }
-        echo html_writer::end_div();
+        echo html_writer::end_tag('details');
+        $sectionnumber++;
     }
+    echo html_writer::end_div();
     echo html_writer::end_div();
 } else if (!$rubric && !$canassess) {
     echo $OUTPUT->notification(get_string('nostationinstructions', 'pgosce'), 'info');
 }
 
 if ($canmanage || $canassign || $canimport || $canexport) {
-    echo html_writer::start_div('mb-3');
+    echo html_writer::start_div('pgosce-toolbar');
     if ($canmanage) {
         echo html_writer::link(new moodle_url('/mod/pgosce/manage.php', ['id' => $cm->id]),
             get_string('managerubric', 'pgosce'), ['class' => 'btn btn-primary mr-1']);
@@ -79,7 +103,7 @@ if ($canmanage || $canassign || $canimport || $canexport) {
         echo html_writer::link(new moodle_url('/mod/pgosce/gift.php', ['id' => $cm->id]),
             get_string('giftimportexport', 'pgosce'), ['class' => 'btn btn-secondary mr-1']);
     }
-    if ($canexport) {
+    if ($canexport && $rubric) {
         echo html_writer::link(new moodle_url('/mod/pgosce/export.php', ['id' => $cm->id]),
             get_string('exportall', 'pgosce'), ['class' => 'btn btn-secondary']);
     }
@@ -94,7 +118,8 @@ if ($canmanage || $canassign || $canimport || $canexport) {
             }
         }
         if ($questionlinks) {
-            echo html_writer::div(get_string('exportquestion', 'pgosce') . ': ' . implode(' | ', $questionlinks), 'mb-3');
+            echo html_writer::div(get_string('exportquestion', 'pgosce') . ': ' . implode(' | ', $questionlinks),
+                'pgosce-panel pgosce-panel-muted');
         }
     }
 }
@@ -110,14 +135,7 @@ if ($canassess) {
     if (!$students) {
         echo $OUTPUT->notification(get_string('nostudents', 'pgosce'), 'info');
     } else {
-        $table = new html_table();
-        $table->head = [
-            get_string('student', 'pgosce'),
-            get_string('status', 'pgosce'),
-            get_string('percentage', 'pgosce'),
-            get_string('grade', 'pgosce'),
-            get_string('actions', 'pgosce'),
-        ];
+        echo html_writer::start_div('pgosce-student-grid');
         foreach ($students as $student) {
             $grade = pgosce_calculate_student_grade($pgosce, $student->id);
             $status = $grade ? get_string('complete', 'pgosce') : get_string('notassessed', 'pgosce');
@@ -127,9 +145,15 @@ if ($canassess) {
                 get_string('assess', 'pgosce'), ['class' => 'btn btn-sm btn-primary mr-1']);
             $actions .= html_writer::link(new moodle_url('/mod/pgosce/report.php', ['id' => $cm->id, 'userid' => $student->id]),
                 get_string('report', 'pgosce'), ['class' => 'btn btn-sm btn-secondary']);
-            $table->data[] = [fullname($student), $status, $percentage, $rawgrade, $actions];
+            echo html_writer::start_div('pgosce-student-card');
+            echo html_writer::div(fullname($student), 'pgosce-student-name');
+            echo html_writer::div($status, 'pgosce-badge' . ($grade ? ' pgosce-badge-complete' : ''));
+            echo html_writer::div(get_string('percentage', 'pgosce') . ': ' . $percentage, 'mt-2');
+            echo html_writer::div(get_string('grade', 'pgosce') . ': ' . $rawgrade, 'text-muted');
+            echo html_writer::div($actions, 'pgosce-actions');
+            echo html_writer::end_div();
         }
-        echo html_writer::table($table);
+        echo html_writer::end_div();
     }
 } else {
     if (has_capability('mod/pgosce:assess', $context) && !pgosce_has_full_access($context)) {
@@ -143,4 +167,5 @@ if ($canassess) {
     }
 }
 
+echo html_writer::end_div();
 echo $OUTPUT->footer();

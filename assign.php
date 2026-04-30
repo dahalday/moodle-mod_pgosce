@@ -25,6 +25,7 @@ $PAGE->set_context($context);
 $PAGE->set_cm($cm, $course);
 $PAGE->set_title(get_string('assignassessors', 'pgosce'));
 $PAGE->set_heading($course->fullname);
+$PAGE->requires->css(new moodle_url('/mod/pgosce/styles.css'));
 
 $assessors = pgosce_get_assignable_assessors($context);
 
@@ -48,13 +49,17 @@ $stationassigned = $DB->get_records_menu('pgosce_assessor', ['course' => $course
     'userid, id');
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('assignassessors', 'pgosce'));
-echo html_writer::tag('p', get_string('assignassessorsintro', 'pgosce'), ['class' => 'text-muted']);
+echo html_writer::start_div('pgosce-shell');
+echo html_writer::start_div('pgosce-hero');
+echo html_writer::tag('h2', get_string('assignassessors', 'pgosce'));
+echo html_writer::tag('p', get_string('assignassessorsintro', 'pgosce'));
+echo html_writer::end_div();
 
 if (!$assessors) {
     echo $OUTPUT->notification(get_string('noassignableassessors', 'pgosce'), 'info');
     echo html_writer::link(new moodle_url('/mod/pgosce/view.php', ['id' => $cm->id]), get_string('backtoactivity', 'pgosce'),
         ['class' => 'btn btn-secondary']);
+    echo html_writer::end_div();
     echo $OUTPUT->footer();
     exit;
 }
@@ -79,7 +84,10 @@ foreach ($assessors as $assessor) {
     ];
 }
 
+echo html_writer::start_div('pgosce-panel');
 echo html_writer::table($table);
+echo html_writer::end_div();
+echo html_writer::start_div('pgosce-actions');
 echo html_writer::empty_tag('input', [
     'type' => 'submit',
     'class' => 'btn btn-primary',
@@ -88,6 +96,8 @@ echo html_writer::empty_tag('input', [
 echo ' ';
 echo html_writer::link(new moodle_url('/mod/pgosce/view.php', ['id' => $cm->id]), get_string('backtoactivity', 'pgosce'),
     ['class' => 'btn btn-secondary']);
+echo html_writer::end_div();
 echo html_writer::end_tag('form');
+echo html_writer::end_div();
 
 echo $OUTPUT->footer();

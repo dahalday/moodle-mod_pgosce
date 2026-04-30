@@ -70,67 +70,182 @@ $PAGE->set_context($context);
 $PAGE->set_cm($cm, $course);
 $PAGE->set_title(get_string('assess', 'pgosce'));
 $PAGE->set_heading($course->fullname);
+$PAGE->requires->css(new moodle_url('/mod/pgosce/styles.css'));
+$PAGE->requires->js_init_code("
+(function() {
+    function updateScore() {
+        var total = 0;
+        var max = 0;
+        var inputs = document.querySelectorAll('.pgosce-score-input');
+        for (var i = 0; i < inputs.length; i++) {
+            total += parseFloat(inputs[i].value || '0');
+            max += parseFloat(inputs[i].getAttribute('data-max') || '0');
+        }
+        var totalEl = document.getElementById('pgosce-live-total');
+        var percentEl = document.getElementById('pgosce-live-percent');
+        if (totalEl) {
+            totalEl.textContent = total.toFixed(2) + ' / ' + max.toFixed(2);
+        }
+        if (percentEl) {
+            percentEl.textContent = max > 0 ? ((total / max) * 100).toFixed(2) + '%' : '0%';
+        }
+    }
+    document.addEventListener('click', function(e) {
+        if (e.target.className.indexOf('pgosce-score-button') === -1) {
+            return;
+        }
+        var button = e.target;
+        var input = document.getElementById(button.getAttribute('data-input'));
+        if (!input) {
+            return;
+        }
+        input.value = button.getAttribute('data-value');
+        var group = button.parentNode.querySelectorAll('.pgosce-score-button');
+        for (var i = 0; i < group.length; i++) {
+            group[i].className = group[i].className.replace(' active', '');
+        }
+        button.className += ' active';
+        updateScore();
+    });
+    document.addEventListener('input', function(e) {
+        if (e.target.className.indexOf('pgosce-score-input') !== -1) {
+            updateScore();
+        }
+    });
+    updateScore();
+})();");
 
 $rubric = pgosce_get_rubric($pgosce->id);
 $scores = pgosce_get_scores($attempt->id);
 $calc = pgosce_calculate_attempt($attempt);
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($pgosce->name));
-echo $OUTPUT->heading(fullname($student), 3);
-echo html_writer::tag('p', get_string('totals', 'pgosce') . ': ' . format_float($calc['earned'], 2) . ' / ' .
-    format_float($calc['max'], 2) . ' (' . format_float($calc['percentage'], 2) . '%)');
+echo html_writer::start_div('pgosce-assessment');
+echo html_writer::start_div('pgosce-assessment-topbar');
+echo html_writer::div(
+    html_writer::span(get_string('student', 'pgosce'), 'pgosce-stat-label') .
+    html_writer::span(fullname($student), 'pgosce-stat-value'),
+    'pgosce-stat'
+);
+echo html_writer::div(
+    html_writer::span(format_string($pgosce->name), 'pgosce-stat-label') .
+    html_writer::span(get_string('assess', 'pgosce'), 'pgosce-stat-value'),
+    'pgosce-stat'
+);
+echo html_writer::div(
+    html_writer::span(get_string('totals', 'pgosce'), 'pgosce-stat-label') .
+    html_writer::span(format_float($calc['earned'], 2) . ' / ' . format_float($calc['max'], 2), 'pgosce-stat-value',
+        ['id' => 'pgosce-live-total']),
+    'pgosce-stat'
+);
+echo html_writer::div(
+    html_writer::span(get_string('percentage', 'pgosce'), 'pgosce-stat-label') .
+    html_writer::span(format_float($calc['percentage'], 2) . '%', 'pgosce-stat-value',
+        ['id' => 'pgosce-live-percent']),
+    'pgosce-stat'
+);
+echo html_writer::end_div();
 
 echo html_writer::start_tag('form', ['method' => 'post']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
 
+$sectionnumber = 1;
 foreach ($rubric as $section) {
-    echo $OUTPUT->heading(format_string($section['name']), 4);
+    echo html_writer::start_tag('details', ['class' => 'pgosce-section-card', 'open' => 'open']);
+    echo html_writer::start_tag('summary');
+    echo html_writer::start_div('pgosce-section-title');
+    echo html_writer::span($sectionnumber, 'pgosce-section-number');
+    echo html_writer::span(format_string($section['name']), 'pgosce-section-name');
+    echo html_writer::end_div();
+    echo html_writer::end_tag('summary');
     if (!empty($section['description'])) {
         echo html_writer::div(
             pgosce_format_editor_content($context, PGOSCE_FILEAREA_SECTION, $section['id'], $section['description']),
-            'text-muted'
+            'pgosce-section-description'
         );
     }
     foreach ($section['questions'] as $question) {
-        echo html_writer::tag('h5', format_string($question['title']));
+        echo html_writer::start_div('pgosce-question');
+        echo html_writer::div(format_string($question['title']), 'pgosce-question-title');
         if (!empty($question['prompt'])) {
             echo pgosce_format_editor_content($context, PGOSCE_FILEAREA_QUESTION, $question['id'], $question['prompt']);
         }
-        $table = new html_table();
-        $table->head = [get_string('criteria', 'pgosce'), get_string('mark', 'pgosce'), get_string('comment', 'pgosce')];
         foreach ($question['criteria'] as $criterion) {
             $score = isset($scores[$criterion['id']]) ? $scores[$criterion['id']] : null;
-            $markinput = html_writer::empty_tag('input', [
-                'type' => 'number',
-                'step' => '0.01',
-                'min' => '0',
-                'max' => $criterion['maxmark'],
-                'name' => 'mark_' . $criterion['id'],
-                'value' => $score ? s($score->mark) : '0',
-                'class' => 'form-control',
-            ]);
-            $commentinput = html_writer::empty_tag('input', [
-                'type' => 'text',
-                'name' => 'comment_' . $criterion['id'],
-                'value' => $score ? s($score->comment) : '',
-                'class' => 'form-control',
-            ]);
-            $table->data[] = [
+            $currentmark = $score ? (float)$score->mark : 0;
+            $maxmark = (float)$criterion['maxmark'];
+            $inputid = 'id_mark_' . $criterion['id'];
+            $isinteger = abs(round($maxmark) - $maxmark) < 0.00001 && $maxmark <= 10;
+
+            echo html_writer::start_div('pgosce-criterion-row');
+            echo html_writer::start_div();
+            echo html_writer::div(
                 pgosce_format_editor_content(
                     $context,
                     PGOSCE_FILEAREA_CRITERION,
                     $criterion['id'],
                     $criterion['description']
-                ) . html_writer::div('/ ' . format_float($criterion['maxmark'], 2), 'text-muted small'),
-                $markinput,
-                $commentinput,
-            ];
+                ),
+                'pgosce-criterion-text'
+            );
+            $commentinput = html_writer::empty_tag('input', [
+                'type' => 'text',
+                'name' => 'comment_' . $criterion['id'],
+                'value' => $score ? s($score->comment) : '',
+                'class' => 'form-control',
+                'placeholder' => get_string('comment', 'pgosce'),
+            ]);
+            echo html_writer::div($commentinput, 'pgosce-comment');
+            echo html_writer::end_div();
+
+            echo html_writer::start_div();
+            if ($isinteger) {
+                echo html_writer::empty_tag('input', [
+                    'type' => 'hidden',
+                    'id' => $inputid,
+                    'name' => 'mark_' . $criterion['id'],
+                    'value' => $currentmark,
+                    'class' => 'pgosce-score-input',
+                    'data-max' => $maxmark,
+                ]);
+                echo html_writer::start_div('pgosce-score-buttons');
+                for ($mark = 0; $mark <= (int)$maxmark; $mark++) {
+                    $classes = 'pgosce-score-button' . ($mark == 0 ? ' zero' : '');
+                    if (abs($currentmark - $mark) < 0.00001) {
+                        $classes .= ' active';
+                    }
+                    echo html_writer::tag('button', $mark, [
+                        'type' => 'button',
+                        'class' => $classes,
+                        'data-input' => $inputid,
+                        'data-value' => $mark,
+                    ]);
+                }
+                echo html_writer::end_div();
+            } else {
+                echo html_writer::empty_tag('input', [
+                    'type' => 'number',
+                    'step' => '0.01',
+                    'min' => '0',
+                    'max' => $maxmark,
+                    'id' => $inputid,
+                    'name' => 'mark_' . $criterion['id'],
+                    'value' => $currentmark,
+                    'class' => 'form-control pgosce-score-input',
+                    'data-max' => $maxmark,
+                ]);
+            }
+            echo html_writer::div('/ ' . format_float($maxmark, 2), 'text-muted small text-right');
+            echo html_writer::end_div();
+            echo html_writer::end_div();
         }
-        echo html_writer::table($table);
+        echo html_writer::end_div();
     }
+    echo html_writer::end_tag('details');
+    $sectionnumber++;
 }
 
+echo html_writer::start_div('pgosce-panel');
 echo html_writer::tag('label', get_string('generalcomment', 'pgosce'), ['for' => 'id_generalcomment']);
 echo html_writer::tag('textarea', s($attempt->generalcomment), [
     'id' => 'id_generalcomment',
@@ -138,11 +253,14 @@ echo html_writer::tag('textarea', s($attempt->generalcomment), [
     'class' => 'form-control',
     'rows' => 4,
 ]);
-echo html_writer::empty_tag('br');
+echo html_writer::end_div();
+echo html_writer::start_div('pgosce-actions');
 echo html_writer::empty_tag('input', ['type' => 'submit', 'class' => 'btn btn-secondary mr-1', 'value' => get_string('save', 'pgosce')]);
 echo html_writer::empty_tag('input', ['type' => 'submit', 'name' => 'finalize', 'class' => 'btn btn-primary', 'value' => get_string('savefinal', 'pgosce')]);
 echo ' ';
 echo html_writer::link(new moodle_url('/mod/pgosce/view.php', ['id' => $cm->id]), get_string('backtoactivity', 'pgosce'), ['class' => 'btn btn-link']);
+echo html_writer::end_div();
 echo html_writer::end_tag('form');
+echo html_writer::end_div();
 
 echo $OUTPUT->footer();

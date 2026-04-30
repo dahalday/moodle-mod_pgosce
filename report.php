@@ -37,10 +37,14 @@ $PAGE->set_context($context);
 $PAGE->set_cm($cm, $course);
 $PAGE->set_title(get_string('report', 'pgosce'));
 $PAGE->set_heading($course->fullname);
+$PAGE->requires->css(new moodle_url('/mod/pgosce/styles.css'));
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($pgosce->name));
-echo $OUTPUT->heading(fullname($student), 3);
+echo html_writer::start_div('pgosce-shell');
+echo html_writer::start_div('pgosce-hero');
+echo html_writer::tag('h2', format_string($pgosce->name));
+echo html_writer::tag('h3', fullname($student));
+echo html_writer::end_div();
 
 $grade = pgosce_calculate_student_grade($pgosce, $userid);
 if ($grade) {
@@ -103,4 +107,5 @@ foreach ($attempts as $attempt) {
 }
 
 echo html_writer::link(new moodle_url('/mod/pgosce/view.php', ['id' => $cm->id]), get_string('backtoactivity', 'pgosce'), ['class' => 'btn btn-secondary']);
+echo html_writer::end_div();
 echo $OUTPUT->footer();

@@ -26,6 +26,7 @@ $PAGE->set_context($context);
 $PAGE->set_cm($cm, $course);
 $PAGE->set_title(get_string('giftimportexport', 'pgosce'));
 $PAGE->set_heading($course->fullname);
+$PAGE->requires->css(new moodle_url('/mod/pgosce/styles.css'));
 
 if ($action === 'export' && confirm_sesskey()) {
     $filename = clean_filename($pgosce->name . '-pgosce.gift');
@@ -59,8 +60,11 @@ if (data_submitted() && confirm_sesskey() && $action === 'import') {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('giftimportexport', 'pgosce'));
-echo html_writer::tag('p', get_string('giftimportexportintro', 'pgosce'), ['class' => 'text-muted']);
+echo html_writer::start_div('pgosce-shell');
+echo html_writer::start_div('pgosce-hero');
+echo html_writer::tag('h2', get_string('giftimportexport', 'pgosce'));
+echo html_writer::tag('p', get_string('giftimportexportintro', 'pgosce'));
+echo html_writer::end_div();
 
 if (pgosce_has_attempts($pgosce->id)) {
     echo $OUTPUT->notification(get_string('giftreplacewarning', 'pgosce'), 'warning');
@@ -108,5 +112,6 @@ echo ' ';
 echo html_writer::link(new moodle_url('/mod/pgosce/manage.php', ['id' => $cm->id]), get_string('managerubric', 'pgosce'),
     ['class' => 'btn btn-link']);
 echo html_writer::end_tag('form');
+echo html_writer::end_div();
 
 echo $OUTPUT->footer();

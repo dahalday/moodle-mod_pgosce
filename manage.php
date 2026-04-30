@@ -25,6 +25,7 @@ $PAGE->set_context($context);
 $PAGE->set_cm($cm, $course);
 $PAGE->set_title(get_string('managerubric', 'pgosce'));
 $PAGE->set_heading($course->fullname);
+$PAGE->requires->css(new moodle_url('/mod/pgosce/styles.css'));
 
 /**
  * Render a text input.
@@ -478,8 +479,11 @@ $PAGE->requires->js_init_code("
 })();");
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('managerubric', 'pgosce'));
-echo html_writer::tag('p', get_string('rubricformhint', 'pgosce'), ['class' => 'text-muted']);
+echo html_writer::start_div('pgosce-shell');
+echo html_writer::start_div('pgosce-hero');
+echo html_writer::tag('h2', get_string('managerubric', 'pgosce'));
+echo html_writer::tag('p', get_string('rubricformhint', 'pgosce'));
+echo html_writer::end_div();
 
 if (pgosce_has_attempts($pgosce->id)) {
     echo $OUTPUT->notification(get_string('rubriceditafterattempts', 'pgosce'), 'warning');
@@ -523,5 +527,6 @@ echo html_writer::empty_tag('input', [
 echo ' ';
 echo html_writer::link(new moodle_url('/mod/pgosce/view.php', ['id' => $cm->id]), get_string('backtoactivity', 'pgosce'), ['class' => 'btn btn-secondary']);
 echo html_writer::end_tag('form');
+echo html_writer::end_div();
 
 echo $OUTPUT->footer();
