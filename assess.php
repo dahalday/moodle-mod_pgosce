@@ -175,7 +175,7 @@ foreach ($rubric as $section) {
             $currentmark = $score ? (float)$score->mark : 0;
             $maxmark = (float)$criterion['maxmark'];
             $inputid = 'id_mark_' . $criterion['id'];
-            $isinteger = abs(round($maxmark) - $maxmark) < 0.00001 && $maxmark <= 10;
+            $supportsbuttons = abs(round($maxmark * 2) - ($maxmark * 2)) < 0.00001 && $maxmark <= 10;
 
             echo html_writer::start_div('pgosce-criterion-row');
             echo html_writer::start_div();
@@ -199,7 +199,7 @@ foreach ($rubric as $section) {
             echo html_writer::end_div();
 
             echo html_writer::start_div();
-            if ($isinteger) {
+            if ($supportsbuttons) {
                 echo html_writer::empty_tag('input', [
                     'type' => 'hidden',
                     'id' => $inputid,
@@ -209,12 +209,14 @@ foreach ($rubric as $section) {
                     'data-max' => $maxmark,
                 ]);
                 echo html_writer::start_div('pgosce-score-buttons');
-                for ($mark = 0; $mark <= (int)$maxmark; $mark++) {
+                for ($markstep = 0; $markstep <= (int)round($maxmark * 2); $markstep++) {
+                    $mark = $markstep / 2;
+                    $marklabel = abs($mark - round($mark)) < 0.00001 ? (string)(int)$mark : format_float($mark, 1);
                     $classes = 'pgosce-score-button' . ($mark == 0 ? ' zero' : '');
                     if (abs($currentmark - $mark) < 0.00001) {
                         $classes .= ' active';
                     }
-                    echo html_writer::tag('button', $mark, [
+                    echo html_writer::tag('button', $marklabel, [
                         'type' => 'button',
                         'class' => $classes,
                         'data-input' => $inputid,
