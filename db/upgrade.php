@@ -114,7 +114,7 @@ function xmldb_pgosce_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026042914, 'pgosce');
     }
 
-    if ($oldversion < 2026043010) {
+    if ($oldversion < 2026043011) {
         $dbman = $DB->get_manager();
         $table = new xmldb_table('pgosce_assessor');
 
@@ -132,14 +132,21 @@ function xmldb_pgosce_upgrade($oldversion) {
         }
 
         $teacherroles = get_archetype_roles('teacher');
+        $restrictedcaps = [
+            'mod/pgosce:manage',
+            'mod/pgosce:export',
+            'mod/pgosce:import',
+            'mod/pgosce:assignassessors',
+        ];
         foreach ($teacherroles as $role) {
-            unassign_capability('mod/pgosce:manage', $role->id);
-            unassign_capability('mod/pgosce:export', $role->id);
-            unassign_capability('mod/pgosce:import', $role->id);
-            unassign_capability('mod/pgosce:assignassessors', $role->id);
+            foreach ($restrictedcaps as $capability) {
+                if ($DB->record_exists('capabilities', ['name' => $capability])) {
+                    unassign_capability($capability, $role->id);
+                }
+            }
         }
 
-        upgrade_mod_savepoint(true, 2026043010, 'pgosce');
+        upgrade_mod_savepoint(true, 2026043011, 'pgosce');
     }
 
     return true;
