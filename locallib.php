@@ -207,6 +207,259 @@ function pgosce_save_rubric_json($pgosceid, $json) {
 }
 
 /**
+ * Convert plain text blocks into simple HTML for Moodle editor fields.
+ *
+ * @param string $text
+ * @return string
+ */
+function pgosce_gift_plain_to_html($text) {
+    $text = trim(str_replace(["\r\n", "\r"], "\n", $text));
+    if ($text === '') {
+        return '';
+    }
+
+    $paragraphs = preg_split("/\n{2,}/", $text);
+    $html = [];
+    foreach ($paragraphs as $paragraph) {
+        $lines = array_map('s', explode("\n", trim($paragraph)));
+        $html[] = '<p>' . implode('<br />', $lines) . '</p>';
+    }
+
+    return implode("\n", $html);
+}
+
+/**
+ * Convert stored rubric HTML into compact text for PG OSCE GIFT export.
+ *
+ * @param string $html
+ * @return string
+ */
+function pgosce_gift_html_to_text($html) {
+    $text = preg_replace('/<\s*br\s*\/?>/i', "\n", $html);
+    $text = preg_replace('/<\/\s*(p|div|li|h[1-6])\s*>/i', "\n", $text);
+    $text = preg_replace('/<\s*li[^>]*>/i', '- ', $text);
+    $text = html_entity_decode(strip_tags($text), ENT_QUOTES, 'UTF-8');
+    $text = preg_replace("/[ \t]+\n/", "\n", $text);
+    $text = preg_replace("/\n{3,}/", "\n\n", $text);
+
+    return trim($text);
+}
+
+/**
+ * Format a mark for PG OSCE GIFT export.
+ *
+ * @param float $mark
+ * @return string
+ */
+function pgosce_gift_format_mark($mark) {
+    $formatted = rtrim(rtrim(sprintf('%.5F', (float)$mark), '0'), '.');
+    return $formatted === '' ? '0' : $formatted;
+}
+
+/**
+ * Export the current rubric as PG OSCE GIFT-style plain text.
+ *
+ * @param stdClass $pgosce
+ * @return string
+ */
+function pgosce_export_gift(stdClass $pgosce) {
+    $lines = [
+        '# PG OSCE GIFT',
+        '# Import this text from the PG OSCE activity, Edit rubric > PG OSCE GIFT.',
+        '::Station:: ' . $pgosce->name,
+        '[Settings]',
+        'ShowStudentInstructions: ' . (empty($pgosce->showstudentinstructions) ? 'no' : 'yes'),
+        'ReleaseStudentReports: ' . (empty($pgosce->displaystudentreports) ? 'no' : 'yes'),
+        '',
+    ];
+
+    foreach (pgosce_get_rubric($pgosce->id) as $section) {
+        $lines[] = '[Section] ' . $section['name'];
+        $description = pgosce_gift_html_to_text($section['description']);
+        if ($description !== '') {
+            $lines[] = $description;
+        }
+        $lines[] = '';
+
+        foreach ($section['questions'] as $question) {
+            $lines[] = '[Question] ' . $question['title'];
+            $prompt = pgosce_gift_html_to_text($question['prompt']);
+            if ($prompt !== '') {
+                $lines[] = 'Prompt: ' . str_replace("\n", "\n", $prompt);
+            }
+            foreach ($question['criteria'] as $criterion) {
+                $description = pgosce_gift_html_to_text($criterion['description']);
+                $description = trim(preg_replace('/\s+/', ' ', $description));
+                $lines[] = '= ' . $description . ' ::' . pgosce_gift_format_mark($criterion['maxmark']);
+            }
+            $lines[] = '';
+        }
+    }
+
+    return trim(implode("\n", $lines)) . "\n";
+}
+
+/**
+ * Parse PG OSCE GIFT-style text into a rubric array.
+ *
+ * @param string $text
+ * @return array
+ */
+function pgosce_parse_gift($text) {
+    $text = str_replace(["\r\n", "\r"], "\n", $text);
+    $lines = explode("\n", $text);
+    $rubric = [];
+    $sectionindex = -1;
+    $questionindex = -1;
+    $mode = '';
+
+    foreach ($lines as $rawline) {
+        $line = trim($rawline);
+
+        if ($line === '') {
+            if ($mode === 'section' && $sectionindex >= 0 &&
+                    trim($rubric[$sectionindex]['description']) !== '') {
+                $rubric[$sectionindex]['description'] .= "\n\n";
+            } else if ($mode === 'question' && $sectionindex >= 0 && $questionindex >= 0 &&
+                    trim($rubric[$sectionindex]['questions'][$questionindex]['prompt']) !== '') {
+                $rubric[$sectionindex]['questions'][$questionindex]['prompt'] .= "\n\n";
+            }
+            continue;
+        }
+
+        if (strpos($line, '#') === 0 || preg_match('/^::\s*Station\s*::/i', $line) ||
+                preg_match('/^\[Settings\]$/i', $line) ||
+                preg_match('/^(ShowStudentInstructions|ReleaseStudentReports)\s*:/i', $line)) {
+            continue;
+        }
+
+        if (preg_match('/^\[Section(?::|\])\s*(.*?)\]?$/i', $line, $matches)) {
+            $name = trim($matches[1]);
+            if ($name === '') {
+                $name = get_string('section', 'pgosce');
+            }
+            $rubric[] = [
+                'name' => $name,
+                'description' => '',
+                'questions' => [],
+            ];
+            $sectionindex = count($rubric) - 1;
+            $questionindex = -1;
+            $mode = 'section';
+            continue;
+        }
+
+        if (preg_match('/^\[Question(?::|\])\s*(.*?)\]?$/i', $line, $matches)) {
+            if ($sectionindex < 0) {
+                $rubric[] = [
+                    'name' => get_string('section', 'pgosce'),
+                    'description' => '',
+                    'questions' => [],
+                ];
+                $sectionindex = 0;
+            }
+            $title = trim($matches[1]);
+            if ($title === '') {
+                $title = get_string('question', 'pgosce');
+            }
+            $rubric[$sectionindex]['questions'][] = [
+                'title' => $title,
+                'prompt' => '',
+                'criteria' => [],
+            ];
+            $questionindex = count($rubric[$sectionindex]['questions']) - 1;
+            $mode = 'question';
+            continue;
+        }
+
+        if ($sectionindex >= 0 && $questionindex >= 0 &&
+                preg_match('/^(?:=|\*|-)\s*(.*?)\s*::\s*([0-9]+(?:\.[0-9]+)?)\s*$/', $line, $matches)) {
+            $rubric[$sectionindex]['questions'][$questionindex]['criteria'][] = [
+                'description' => pgosce_gift_plain_to_html($matches[1]),
+                'maxmark' => (float)$matches[2],
+            ];
+            $mode = 'question';
+            continue;
+        }
+
+        if ($sectionindex >= 0 && $questionindex >= 0) {
+            if (preg_match('/^Prompt\s*:\s*(.*)$/i', $line, $matches)) {
+                $line = $matches[1];
+            }
+            if ($rubric[$sectionindex]['questions'][$questionindex]['prompt'] !== '' &&
+                    substr($rubric[$sectionindex]['questions'][$questionindex]['prompt'], -2) !== "\n\n") {
+                $rubric[$sectionindex]['questions'][$questionindex]['prompt'] .= "\n";
+            }
+            $rubric[$sectionindex]['questions'][$questionindex]['prompt'] .= $line;
+            $mode = 'question';
+        } else if ($sectionindex >= 0) {
+            if ($rubric[$sectionindex]['description'] !== '' &&
+                    substr($rubric[$sectionindex]['description'], -2) !== "\n\n") {
+                $rubric[$sectionindex]['description'] .= "\n";
+            }
+            $rubric[$sectionindex]['description'] .= $line;
+            $mode = 'section';
+        }
+    }
+
+    foreach ($rubric as $sectionkey => $section) {
+        $rubric[$sectionkey]['description'] = pgosce_gift_plain_to_html($section['description']);
+        foreach ($section['questions'] as $questionkey => $question) {
+            $rubric[$sectionkey]['questions'][$questionkey]['prompt'] = pgosce_gift_plain_to_html($question['prompt']);
+        }
+    }
+
+    return $rubric;
+}
+
+/**
+ * Parse optional PG OSCE GIFT settings.
+ *
+ * @param string $text
+ * @return array
+ */
+function pgosce_parse_gift_settings($text) {
+    $settings = [];
+    $text = str_replace(["\r\n", "\r"], "\n", $text);
+    foreach (explode("\n", $text) as $line) {
+        $line = trim($line);
+        if (preg_match('/^ShowStudentInstructions\s*:\s*(yes|no|1|0|true|false)$/i', $line, $matches)) {
+            $settings['showstudentinstructions'] = in_array(strtolower($matches[1]), ['yes', '1', 'true']) ? 1 : 0;
+        }
+        if (preg_match('/^ReleaseStudentReports\s*:\s*(yes|no|1|0|true|false)$/i', $line, $matches)) {
+            $settings['displaystudentreports'] = in_array(strtolower($matches[1]), ['yes', '1', 'true']) ? 1 : 0;
+        }
+    }
+
+    return $settings;
+}
+
+/**
+ * Total possible marks from an unsaved rubric array.
+ *
+ * @param array $rubric
+ * @return float
+ */
+function pgosce_get_total_maxmark_from_rubric(array $rubric) {
+    $total = 0.0;
+    foreach ($rubric as $section) {
+        if (empty($section['questions']) || !is_array($section['questions'])) {
+            continue;
+        }
+        foreach ($section['questions'] as $question) {
+            if (empty($question['criteria']) || !is_array($question['criteria'])) {
+                continue;
+            }
+            foreach ($question['criteria'] as $criterion) {
+                $total += isset($criterion['maxmark']) ? (float)$criterion['maxmark'] : 0.0;
+            }
+        }
+    }
+
+    return $total;
+}
+
+/**
  * Save a nested rubric array.
  *
  * @param int $pgosceid

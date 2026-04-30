@@ -12,8 +12,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_pgosce';
-$plugin->version = 2026042913;
+$plugin->version = 2026042914;
 $plugin->requires = 2021051700;
 $plugin->maturity = MATURITY_ALPHA;
-$plugin->release = '0.1.4';
+$plugin->release = '0.1.5';
 $plugin->cron = 0;

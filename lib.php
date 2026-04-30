@@ -427,6 +427,7 @@ function pgosce_extend_settings_navigation(settings_navigation $settings, naviga
     $context = context_module::instance($PAGE->cm->id);
     if (has_capability('mod/pgosce:manage', $context)) {
         $node->add(get_string('managerubric', 'pgosce'), new moodle_url('/mod/pgosce/manage.php', ['id' => $PAGE->cm->id]));
+        $node->add(get_string('giftimportexport', 'pgosce'), new moodle_url('/mod/pgosce/gift.php', ['id' => $PAGE->cm->id]));
     }
     if (has_capability('mod/pgosce:export', $context)) {
         $node->add(get_string('export', 'pgosce'), new moodle_url('/mod/pgosce/export.php', ['id' => $PAGE->cm->id]));

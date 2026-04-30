@@ -66,6 +66,9 @@ if ($canmanage || $canexport) {
     if ($canmanage) {
         echo html_writer::link(new moodle_url('/mod/pgosce/manage.php', ['id' => $cm->id]),
             get_string('managerubric', 'pgosce'), ['class' => 'btn btn-primary mr-1']);
+        echo ' ';
+        echo html_writer::link(new moodle_url('/mod/pgosce/gift.php', ['id' => $cm->id]),
+            get_string('giftimportexport', 'pgosce'), ['class' => 'btn btn-secondary mr-1']);
     }
     if ($canexport) {
         echo html_writer::link(new moodle_url('/mod/pgosce/export.php', ['id' => $cm->id]),
