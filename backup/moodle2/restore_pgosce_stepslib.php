@@ -52,6 +52,12 @@ class restore_pgosce_activity_structure_step extends restore_activity_structure_
         if (!isset($data->showstudentinstructions)) {
             $data->showstudentinstructions = 1;
         }
+        if (empty($data->markinputtype)) {
+            $data->markinputtype = 'buttons';
+        }
+        if (empty($data->markbuttonstep)) {
+            $data->markbuttonstep = 0.5;
+        }
         $data->timecreated = $this->apply_date_offset($data->timecreated);
         $data->timemodified = $this->apply_date_offset($data->timemodified);
 

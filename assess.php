@@ -118,6 +118,11 @@ $PAGE->requires->js_init_code("
 $rubric = pgosce_get_rubric($pgosce->id);
 $scores = pgosce_get_scores($attempt->id);
 $calc = pgosce_calculate_attempt($attempt);
+$markinputtype = empty($pgosce->markinputtype) ? 'buttons' : $pgosce->markinputtype;
+$markbuttonstep = empty($pgosce->markbuttonstep) ? 0.5 : (float)$pgosce->markbuttonstep;
+if (!in_array($markbuttonstep, [1.0, 0.5, 0.25])) {
+    $markbuttonstep = 0.5;
+}
 
 echo $OUTPUT->header();
 echo html_writer::start_div('pgosce-assessment');
@@ -175,7 +180,10 @@ foreach ($rubric as $section) {
             $currentmark = $score ? (float)$score->mark : 0;
             $maxmark = (float)$criterion['maxmark'];
             $inputid = 'id_mark_' . $criterion['id'];
-            $supportsbuttons = abs(round($maxmark * 2) - ($maxmark * 2)) < 0.00001 && $maxmark <= 10;
+            $buttoncount = (int)round($maxmark / $markbuttonstep);
+            $supportsbuttons = $markinputtype === 'buttons' &&
+                abs(($buttoncount * $markbuttonstep) - $maxmark) < 0.00001 &&
+                $maxmark <= 10;
 
             echo html_writer::start_div('pgosce-criterion-row');
             echo html_writer::start_div();
@@ -209,9 +217,10 @@ foreach ($rubric as $section) {
                     'data-max' => $maxmark,
                 ]);
                 echo html_writer::start_div('pgosce-score-buttons');
-                for ($markstep = 0; $markstep <= (int)round($maxmark * 2); $markstep++) {
-                    $mark = $markstep / 2;
-                    $marklabel = abs($mark - round($mark)) < 0.00001 ? (string)(int)$mark : format_float($mark, 1);
+                for ($markstep = 0; $markstep <= $buttoncount; $markstep++) {
+                    $mark = $markstep * $markbuttonstep;
+                    $marklabel = abs($mark - round($mark)) < 0.00001 ?
+                        (string)(int)$mark : rtrim(rtrim(number_format($mark, 2, '.', ''), '0'), '.');
                     $classes = 'pgosce-score-button' . ($mark == 0 ? ' zero' : '');
                     if (abs($currentmark - $mark) < 0.00001) {
                         $classes .= ' active';

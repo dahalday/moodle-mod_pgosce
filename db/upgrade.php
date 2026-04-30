@@ -149,5 +149,24 @@ function xmldb_pgosce_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026043011, 'pgosce');
     }
 
+    if ($oldversion < 2026043014) {
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('pgosce');
+
+        $field = new xmldb_field('markinputtype', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, 'buttons',
+            'showstudentinstructions');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('markbuttonstep', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0.5',
+            'markinputtype');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026043014, 'pgosce');
+    }
+
     return true;
 }

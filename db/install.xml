@@ -13,6 +13,8 @@
         <FIELD NAME="grade" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="100" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="displaystudentreports" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="showstudentinstructions" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="markinputtype" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="buttons" SEQUENCE="false"/>
+        <FIELD NAME="markbuttonstep" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0.5" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

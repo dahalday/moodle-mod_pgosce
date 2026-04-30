@@ -56,6 +56,12 @@ function pgosce_add_instance(stdClass $data) {
     if (!isset($data->showstudentinstructions)) {
         $data->showstudentinstructions = 1;
     }
+    if (empty($data->markinputtype)) {
+        $data->markinputtype = 'buttons';
+    }
+    if (empty($data->markbuttonstep)) {
+        $data->markbuttonstep = 0.5;
+    }
 
     $id = $DB->insert_record('pgosce', $data);
     $data->id = $id;
@@ -81,6 +87,12 @@ function pgosce_update_instance(stdClass $data) {
     }
     if (!isset($data->showstudentinstructions)) {
         $data->showstudentinstructions = 1;
+    }
+    if (empty($data->markinputtype)) {
+        $data->markinputtype = 'buttons';
+    }
+    if (empty($data->markbuttonstep)) {
+        $data->markbuttonstep = 0.5;
     }
 
     $result = $DB->update_record('pgosce', $data);
