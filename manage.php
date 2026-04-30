@@ -189,12 +189,13 @@ function pgosce_render_criterion_editor(array $criterion, $sectionindex, $questi
     );
     $output .= html_writer::div(
         html_writer::tag('label', '&nbsp;') .
-        html_writer::empty_tag('input', [
+        html_writer::tag('button', '<span aria-hidden="true">&#128465;</span>', [
             'type' => 'button',
-            'class' => 'btn btn-outline-danger btn-block pgosce-remove',
-            'value' => get_string('remove', 'pgosce'),
+            'class' => 'btn btn-outline-danger pgosce-remove pgosce-icon-button',
+            'title' => get_string('remove', 'pgosce'),
+            'aria-label' => get_string('remove', 'pgosce'),
         ]),
-        'col-md-1'
+        'col-md-1 pgosce-criterion-remove'
     );
     $output .= html_writer::end_div();
     $output .= html_writer::end_div();
@@ -232,10 +233,11 @@ function pgosce_render_question_editor(array $question, $sectionindex, $question
     $output .= pgosce_render_hidden_input($prefix . '[id]', $questionid, 'question-id');
     $output .= html_writer::start_div('d-flex justify-content-between align-items-center mb-2');
     $output .= html_writer::tag('h5', get_string('question', 'pgosce'), ['class' => 'mb-0']);
-    $output .= html_writer::empty_tag('input', [
+    $output .= html_writer::tag('button', '<span aria-hidden="true">&#128465;</span>', [
         'type' => 'button',
-        'class' => 'btn btn-sm btn-outline-danger pgosce-remove',
-        'value' => get_string('removequestion', 'pgosce'),
+        'class' => 'btn btn-outline-danger pgosce-remove pgosce-icon-button',
+        'title' => get_string('removequestion', 'pgosce'),
+        'aria-label' => get_string('removequestion', 'pgosce'),
     ]);
     $output .= html_writer::end_div();
     $output .= html_writer::start_div('row');
@@ -295,10 +297,11 @@ function pgosce_render_section_editor(array $section, $sectionindex) {
     $output .= pgosce_render_hidden_input($prefix . '[id]', $sectionid, 'section-id');
     $output .= html_writer::start_div('d-flex justify-content-between align-items-center mb-3');
     $output .= html_writer::tag('h4', get_string('section', 'pgosce'), ['class' => 'mb-0']);
-    $output .= html_writer::empty_tag('input', [
+    $output .= html_writer::tag('button', '<span aria-hidden="true">&#128465;</span>', [
         'type' => 'button',
-        'class' => 'btn btn-outline-danger pgosce-remove',
-        'value' => get_string('removesection', 'pgosce'),
+        'class' => 'btn btn-outline-danger pgosce-remove pgosce-icon-button',
+        'title' => get_string('removesection', 'pgosce'),
+        'aria-label' => get_string('removesection', 'pgosce'),
     ]);
     $output .= html_writer::end_div();
     $output .= html_writer::start_div('row');
@@ -415,12 +418,12 @@ $PAGE->requires->js_init_code("
             '<div class=\"row\">' +
             '<div class=\"col-md-9\"><div class=\"form-group\"><label>" . addslashes_js(get_string('criteria', 'pgosce')) . "</label><textarea data-field=\"criterion-description\" class=\"form-control\" rows=\"2\"></textarea></div></div>' +
             '<div class=\"col-md-2\"><div class=\"form-group\"><label>" . addslashes_js(get_string('maxmark', 'pgosce')) . "</label><input data-field=\"criterion-maxmark\" type=\"number\" step=\"0.01\" min=\"0\" value=\"1\" class=\"form-control\"></div></div>' +
-            '<div class=\"col-md-1\"><label>&nbsp;</label><input type=\"button\" class=\"btn btn-outline-danger btn-block pgosce-remove\" value=\"" . addslashes_js(get_string('remove', 'pgosce')) . "\"></div>' +
+            '<div class=\"col-md-1 pgosce-criterion-remove\"><label>&nbsp;</label><button type=\"button\" class=\"btn btn-outline-danger pgosce-remove pgosce-icon-button\" title=\"" . addslashes_js(get_string('remove', 'pgosce')) . "\" aria-label=\"" . addslashes_js(get_string('remove', 'pgosce')) . "\"><span aria-hidden=\"true\">&#128465;</span></button></div>' +
             '</div></div>';
     }
     function questionHtml() {
         return '<div class=\"pgosce-question card mb-3\"><div class=\"card-body\">' +
-            '<div class=\"d-flex justify-content-between align-items-center mb-2\"><h5 class=\"mb-0\">" . addslashes_js(get_string('question', 'pgosce')) . "</h5><input type=\"button\" class=\"btn btn-sm btn-outline-danger pgosce-remove\" value=\"" . addslashes_js(get_string('removequestion', 'pgosce')) . "\"></div>' +
+            '<div class=\"d-flex justify-content-between align-items-center mb-2\"><h5 class=\"mb-0\">" . addslashes_js(get_string('question', 'pgosce')) . "</h5><button type=\"button\" class=\"btn btn-outline-danger pgosce-remove pgosce-icon-button\" title=\"" . addslashes_js(get_string('removequestion', 'pgosce')) . "\" aria-label=\"" . addslashes_js(get_string('removequestion', 'pgosce')) . "\"><span aria-hidden=\"true\">&#128465;</span></button></div>' +
             '<div class=\"row\"><div class=\"col-md-4\"><div class=\"form-group\"><label>" . addslashes_js(get_string('questiontitle', 'pgosce')) . "</label><input data-field=\"question-title\" type=\"text\" class=\"form-control\"></div></div>' +
             '<div class=\"col-md-8\"><div class=\"form-group\"><label>" . addslashes_js(get_string('questionprompt', 'pgosce')) . "</label><textarea data-field=\"question-prompt\" class=\"form-control\" rows=\"2\"></textarea></div></div></div>' +
             '<h6>" . addslashes_js(get_string('criteria', 'pgosce')) . "</h6><div class=\"pgosce-criteria\">' + criterionHtml() + '</div>' +
@@ -429,7 +432,7 @@ $PAGE->requires->js_init_code("
     }
     function sectionHtml() {
         return '<div class=\"pgosce-section card mb-4\"><div class=\"card-body\">' +
-            '<div class=\"d-flex justify-content-between align-items-center mb-3\"><h4 class=\"mb-0\">" . addslashes_js(get_string('section', 'pgosce')) . "</h4><input type=\"button\" class=\"btn btn-outline-danger pgosce-remove\" value=\"" . addslashes_js(get_string('removesection', 'pgosce')) . "\"></div>' +
+            '<div class=\"d-flex justify-content-between align-items-center mb-3\"><h4 class=\"mb-0\">" . addslashes_js(get_string('section', 'pgosce')) . "</h4><button type=\"button\" class=\"btn btn-outline-danger pgosce-remove pgosce-icon-button\" title=\"" . addslashes_js(get_string('removesection', 'pgosce')) . "\" aria-label=\"" . addslashes_js(get_string('removesection', 'pgosce')) . "\"><span aria-hidden=\"true\">&#128465;</span></button></div>' +
             '<div class=\"row\"><div class=\"col-md-4\"><div class=\"form-group\"><label>" . addslashes_js(get_string('sectionname', 'pgosce')) . "</label><input data-field=\"section-name\" type=\"text\" class=\"form-control\"></div></div>' +
             '<div class=\"col-md-8\"><div class=\"form-group\"><label>" . addslashes_js(get_string('sectiondescription', 'pgosce')) . "</label><textarea data-field=\"section-description\" class=\"form-control\" rows=\"2\"></textarea></div></div></div>' +
             '<div class=\"pgosce-questions\">' + questionHtml() + '</div>' +
@@ -462,8 +465,9 @@ $PAGE->requires->js_init_code("
             wrapper.innerHTML = criterionHtml();
             criteria.appendChild(wrapper.firstChild);
             renameInputs(editor);
-        } else if (target.className.indexOf('pgosce-remove') !== -1) {
-            var item = closest(target, '.pgosce-criterion') || closest(target, '.pgosce-question') || closest(target, '.pgosce-section');
+        } else if (closest(target, '.pgosce-remove')) {
+            var removebutton = closest(target, '.pgosce-remove');
+            var item = closest(removebutton, '.pgosce-criterion') || closest(removebutton, '.pgosce-question') || closest(removebutton, '.pgosce-section');
             if (item) {
                 item.parentNode.removeChild(item);
                 renameInputs(editor);
