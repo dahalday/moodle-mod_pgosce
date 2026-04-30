@@ -282,6 +282,29 @@
     border-color: rgba(220, 38, 38, .45);
 }
 
+.pgosce-timer-toast {
+    background: #17324d;
+    border-radius: 8px;
+    box-shadow: 0 12px 30px rgba(23, 50, 77, .22);
+    color: #fff;
+    font-weight: 700;
+    max-width: min(420px, calc(100vw - 2rem));
+    opacity: 0;
+    padding: .85rem 1rem;
+    pointer-events: none;
+    position: fixed;
+    right: 1rem;
+    top: 1rem;
+    transform: translateY(-.5rem);
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 1050;
+}
+
+.pgosce-timer-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 @media (max-width: 700px) {
     .pgosce-criterion-row {
         grid-template-columns: 1fr;

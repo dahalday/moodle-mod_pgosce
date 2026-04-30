@@ -143,10 +143,27 @@ $PAGE->requires->js_init_code("
         var warningTimes = [" . $timerwarnfirstseconds . ", " . $timerwarnsecondseconds . "];
         var timerEl = document.getElementById('pgosce-timer-value');
         var timerBox = document.getElementById('pgosce-timer-box');
+        var timerToast = null;
         function formatTime(seconds) {
             var minutes = Math.floor(seconds / 60);
             var secs = seconds % 60;
             return minutes + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+        function showTimerToast(message) {
+            if (!timerToast) {
+                timerToast = document.createElement('div');
+                timerToast.className = 'pgosce-timer-toast';
+                timerToast.setAttribute('role', 'status');
+                timerToast.setAttribute('aria-live', 'polite');
+                document.body.appendChild(timerToast);
+            }
+            timerToast.textContent = message;
+            timerToast.className = 'pgosce-timer-toast show';
+            window.setTimeout(function() {
+                if (timerToast) {
+                    timerToast.className = 'pgosce-timer-toast';
+                }
+            }, 3000);
         }
         function showWarning(seconds) {
             if (!seconds || warned[seconds]) {
@@ -158,7 +175,7 @@ $PAGE->requires->js_init_code("
             if (timerBox) {
                 timerBox.className += ' pgosce-timer-warning';
             }
-            window.alert(message);
+            showTimerToast(message);
         }
         function tickTimer() {
             if (timerEl) {
