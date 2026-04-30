@@ -33,6 +33,9 @@ class backup_pgosce_activity_structure_step extends backup_activity_structure_st
             'showstudentinstructions',
             'markinputtype',
             'markbuttonstep',
+            'timelimit',
+            'timerwarnfirst',
+            'timerwarnsecond',
             'timecreated',
             'timemodified',
         ]);

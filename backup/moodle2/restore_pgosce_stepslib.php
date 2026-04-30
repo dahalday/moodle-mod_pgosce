@@ -58,6 +58,15 @@ class restore_pgosce_activity_structure_step extends restore_activity_structure_
         if (empty($data->markbuttonstep)) {
             $data->markbuttonstep = 0.5;
         }
+        if (!isset($data->timelimit)) {
+            $data->timelimit = 0;
+        }
+        if (!isset($data->timerwarnfirst)) {
+            $data->timerwarnfirst = 2;
+        }
+        if (!isset($data->timerwarnsecond)) {
+            $data->timerwarnsecond = 1;
+        }
         $data->timecreated = $this->apply_date_offset($data->timecreated);
         $data->timemodified = $this->apply_date_offset($data->timemodified);
 

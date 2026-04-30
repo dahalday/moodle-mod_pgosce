@@ -14,6 +14,7 @@ require_once($CFG->dirroot . '/mod/pgosce/lib.php');
 
 $id = required_param('id', PARAM_INT);
 $userid = required_param('userid', PARAM_INT);
+$attemptid = optional_param('attemptid', 0, PARAM_INT);
 [$course, $cm] = get_course_and_cm_from_cmid($id, 'pgosce');
 $pgosce = $DB->get_record('pgosce', ['id' => $cm->instance], '*', MUST_EXIST);
 $student = core_user::get_user($userid, '*', MUST_EXIST);
@@ -31,7 +32,19 @@ if (!$criteria) {
         null, \core\output\notification::NOTIFY_WARNING);
 }
 
-$attempt = pgosce_get_or_create_attempt($pgosce->id, $userid, $USER->id);
+$hasfullaccess = pgosce_has_full_access($context);
+if ($attemptid && $hasfullaccess) {
+    $attempt = $DB->get_record('pgosce_attempt', [
+        'id' => $attemptid,
+        'pgosceid' => $pgosce->id,
+        'userid' => $userid,
+    ], '*', MUST_EXIST);
+} else {
+    $attempt = pgosce_get_or_create_attempt($pgosce->id, $userid, $USER->id);
+}
+if (!$hasfullaccess && $attempt->status == PGOSCE_STATUS_FINAL) {
+    throw new moodle_exception('finalattemptlocked', 'pgosce');
+}
 
 if (data_submitted() && confirm_sesskey()) {
     foreach ($criteria as $criterion) {
@@ -65,12 +78,21 @@ if (data_submitted() && confirm_sesskey()) {
     redirect(new moodle_url('/mod/pgosce/view.php', ['id' => $cm->id]), $message, null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
-$PAGE->set_url('/mod/pgosce/assess.php', ['id' => $id, 'userid' => $userid]);
+$pageparams = ['id' => $id, 'userid' => $userid];
+if ($attemptid && $hasfullaccess) {
+    $pageparams['attemptid'] = $attemptid;
+}
+$PAGE->set_url('/mod/pgosce/assess.php', $pageparams);
 $PAGE->set_context($context);
 $PAGE->set_cm($cm, $course);
 $PAGE->set_title(get_string('assess', 'pgosce'));
 $PAGE->set_heading($course->fullname);
 $PAGE->requires->css(new moodle_url('/mod/pgosce/styles.css'));
+$timelimitseconds = empty($pgosce->timelimit) ? 0 : ((int)$pgosce->timelimit * 60);
+$timerwarnfirstseconds = empty($pgosce->timerwarnfirst) ? 0 : ((int)$pgosce->timerwarnfirst * 60);
+$timerwarnsecondseconds = empty($pgosce->timerwarnsecond) ? 0 : ((int)$pgosce->timerwarnsecond * 60);
+$timerwarningtemplate = addslashes_js(get_string('timerwarning', 'pgosce', '__MINUTES__'));
+$timerexpired = addslashes_js(get_string('timerexpired', 'pgosce'));
 $PAGE->requires->js_init_code("
 (function() {
     function updateScore() {
@@ -112,6 +134,52 @@ $PAGE->requires->js_init_code("
             updateScore();
         }
     });
+    var timerLimit = " . $timelimitseconds . ";
+    if (timerLimit > 0) {
+        var remaining = timerLimit;
+        var warned = {};
+        var warningTemplate = '" . $timerwarningtemplate . "';
+        var expiredText = '" . $timerexpired . "';
+        var warningTimes = [" . $timerwarnfirstseconds . ", " . $timerwarnsecondseconds . "];
+        var timerEl = document.getElementById('pgosce-timer-value');
+        var timerBox = document.getElementById('pgosce-timer-box');
+        function formatTime(seconds) {
+            var minutes = Math.floor(seconds / 60);
+            var secs = seconds % 60;
+            return minutes + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+        function showWarning(seconds) {
+            if (!seconds || warned[seconds]) {
+                return;
+            }
+            warned[seconds] = true;
+            var minutes = Math.ceil(seconds / 60);
+            var message = warningTemplate.replace('__MINUTES__', minutes);
+            if (timerBox) {
+                timerBox.className += ' pgosce-timer-warning';
+            }
+            window.alert(message);
+        }
+        function tickTimer() {
+            if (timerEl) {
+                timerEl.textContent = remaining > 0 ? formatTime(remaining) : expiredText;
+            }
+            for (var i = 0; i < warningTimes.length; i++) {
+                if (remaining === warningTimes[i]) {
+                    showWarning(warningTimes[i]);
+                }
+            }
+            if (remaining <= 0) {
+                if (timerBox) {
+                    timerBox.className += ' pgosce-timer-expired';
+                }
+                return;
+            }
+            remaining--;
+            window.setTimeout(tickTimer, 1000);
+        }
+        tickTimer();
+    }
     updateScore();
 })();");
 
@@ -148,6 +216,13 @@ echo html_writer::div(
     html_writer::span(format_float($calc['percentage'], 2) . '%', 'pgosce-stat-value',
         ['id' => 'pgosce-live-percent']),
     'pgosce-stat'
+);
+echo html_writer::div(
+    html_writer::span(get_string('timerremaining', 'pgosce'), 'pgosce-stat-label') .
+    html_writer::span($timelimitseconds > 0 ? format_float($pgosce->timelimit, 0) . ':00' : get_string('timeroff', 'pgosce'),
+        'pgosce-stat-value', ['id' => 'pgosce-timer-value']),
+    'pgosce-stat',
+    ['id' => 'pgosce-timer-box']
 );
 echo html_writer::end_div();
 
@@ -206,7 +281,7 @@ foreach ($rubric as $section) {
             echo html_writer::div($commentinput, 'pgosce-comment');
             echo html_writer::end_div();
 
-            echo html_writer::start_div();
+            echo html_writer::start_div('pgosce-mark-entry');
             if ($supportsbuttons) {
                 echo html_writer::empty_tag('input', [
                     'type' => 'hidden',
@@ -246,7 +321,7 @@ foreach ($rubric as $section) {
                     'data-max' => $maxmark,
                 ]);
             }
-            echo html_writer::div('/ ' . format_float($maxmark, 2), 'text-muted small text-right');
+            echo html_writer::div('/ ' . format_float($maxmark, 2), 'pgosce-max-label');
             echo html_writer::end_div();
             echo html_writer::end_div();
         }

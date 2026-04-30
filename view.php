@@ -34,6 +34,7 @@ $canmanage = has_capability('mod/pgosce:manage', $context);
 $canassign = has_capability('mod/pgosce:assignassessors', $context);
 $canimport = has_capability('mod/pgosce:import', $context);
 $canexport = has_capability('mod/pgosce:export', $context);
+$hasfullaccess = pgosce_has_full_access($context);
 $hasrubric = pgosce_get_total_maxmark($pgosce->id) > 0;
 $rubric = pgosce_get_rubric($pgosce->id);
 $showinstructions = $rubric && ($canassess || $canmanage || !empty($pgosce->showstudentinstructions));
@@ -138,13 +139,35 @@ if ($canassess) {
         echo html_writer::start_div('pgosce-student-grid');
         foreach ($students as $student) {
             $grade = pgosce_calculate_student_grade($pgosce, $student->id);
-            $status = $grade ? get_string('complete', 'pgosce') : get_string('notassessed', 'pgosce');
-            $percentage = $grade ? format_float($grade->percentage, 2) . '%' : '-';
-            $rawgrade = $grade ? format_float($grade->rawgrade, 2) . ' / ' . format_float($pgosce->grade, 2) : '-';
-            $actions = html_writer::link(new moodle_url('/mod/pgosce/assess.php', ['id' => $cm->id, 'userid' => $student->id]),
-                get_string('assess', 'pgosce'), ['class' => 'btn btn-sm btn-primary mr-1']);
-            $actions .= html_writer::link(new moodle_url('/mod/pgosce/report.php', ['id' => $cm->id, 'userid' => $student->id]),
-                get_string('report', 'pgosce'), ['class' => 'btn btn-sm btn-secondary']);
+            $attempt = null;
+            if (!$hasfullaccess) {
+                $attempt = $DB->get_record('pgosce_attempt', [
+                    'pgosceid' => $pgosce->id,
+                    'userid' => $student->id,
+                    'assessorid' => $USER->id,
+                ]);
+            }
+            $locked = !$hasfullaccess && $attempt && $attempt->status == PGOSCE_STATUS_FINAL;
+            if (!$hasfullaccess && $attempt) {
+                $calc = pgosce_calculate_attempt($attempt);
+                $status = $attempt->status == PGOSCE_STATUS_FINAL ? get_string('complete', 'pgosce') :
+                    get_string('inprogress', 'pgosce');
+                $percentage = format_float($calc['percentage'], 2) . '%';
+                $rawgrade = format_float($calc['earned'], 2) . ' / ' . format_float($calc['max'], 2);
+            } else {
+                $status = $grade ? get_string('complete', 'pgosce') : get_string('notassessed', 'pgosce');
+                $percentage = $grade ? format_float($grade->percentage, 2) . '%' : '-';
+                $rawgrade = $grade ? format_float($grade->rawgrade, 2) . ' / ' . format_float($pgosce->grade, 2) : '-';
+            }
+            $actions = '';
+            if (!$locked) {
+                $actions .= html_writer::link(new moodle_url('/mod/pgosce/assess.php', ['id' => $cm->id, 'userid' => $student->id]),
+                    get_string('assess', 'pgosce'), ['class' => 'btn btn-sm btn-primary mr-1']);
+                $actions .= html_writer::link(new moodle_url('/mod/pgosce/report.php', ['id' => $cm->id, 'userid' => $student->id]),
+                    get_string('report', 'pgosce'), ['class' => 'btn btn-sm btn-secondary']);
+            } else {
+                $actions = html_writer::span(get_string('finalattemptlocked', 'pgosce'), 'text-muted small');
+            }
             echo html_writer::start_div('pgosce-student-card');
             echo html_writer::div(fullname($student), 'pgosce-student-name');
             echo html_writer::div($status, 'pgosce-badge' . ($grade ? ' pgosce-badge-complete' : ''));

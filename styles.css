@@ -180,13 +180,14 @@
     align-items: flex-start;
     border-top: 1px solid #edf0f5;
     display: grid;
-    gap: .75rem;
-    grid-template-columns: minmax(0, 1fr) minmax(150px, 220px);
-    padding: .85rem 0;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) minmax(140px, 260px);
+    padding: 1rem 0;
 }
 
 .pgosce-criterion-text {
     color: #263447;
+    line-height: 1.55;
 }
 
 .pgosce-score-buttons {
@@ -194,6 +195,13 @@
     flex-wrap: wrap;
     gap: .35rem;
     justify-content: flex-end;
+}
+
+.pgosce-mark-entry {
+    background: #f8fafc;
+    border: 1px solid #e4e9f1;
+    border-radius: 8px;
+    padding: .55rem;
 }
 
 .pgosce-score-button {
@@ -225,6 +233,7 @@
 
 .pgosce-comment {
     margin-top: .5rem;
+    max-width: 720px;
 }
 
 .pgosce-comment input,
@@ -237,6 +246,23 @@
     flex-wrap: wrap;
     gap: .5rem;
     margin-top: 1rem;
+}
+
+.pgosce-max-label {
+    color: #66758a;
+    font-size: .8rem;
+    margin-top: .3rem;
+    text-align: right;
+}
+
+.pgosce-timer-warning {
+    background: rgba(255, 210, 88, .22);
+    border-color: rgba(255, 210, 88, .45);
+}
+
+.pgosce-timer-expired {
+    background: rgba(220, 38, 38, .22);
+    border-color: rgba(220, 38, 38, .45);
 }
 
 @media (max-width: 700px) {

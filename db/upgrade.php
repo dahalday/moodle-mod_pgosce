@@ -168,5 +168,30 @@ function xmldb_pgosce_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026043014, 'pgosce');
     }
 
+    if ($oldversion < 2026043015) {
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('pgosce');
+
+        $field = new xmldb_field('timelimit', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0',
+            'markbuttonstep');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('timerwarnfirst', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '2',
+            'timelimit');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('timerwarnsecond', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '1',
+            'timerwarnfirst');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026043015, 'pgosce');
+    }
+
     return true;
 }

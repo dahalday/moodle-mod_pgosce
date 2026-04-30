@@ -62,6 +62,9 @@ function pgosce_add_instance(stdClass $data) {
     if (empty($data->markbuttonstep)) {
         $data->markbuttonstep = 0.5;
     }
+    $data->timelimit = empty($data->timelimit) ? 0 : max(0, (int)$data->timelimit);
+    $data->timerwarnfirst = empty($data->timerwarnfirst) ? 2 : max(0, (int)$data->timerwarnfirst);
+    $data->timerwarnsecond = empty($data->timerwarnsecond) ? 1 : max(0, (int)$data->timerwarnsecond);
 
     $id = $DB->insert_record('pgosce', $data);
     $data->id = $id;
@@ -94,6 +97,9 @@ function pgosce_update_instance(stdClass $data) {
     if (empty($data->markbuttonstep)) {
         $data->markbuttonstep = 0.5;
     }
+    $data->timelimit = empty($data->timelimit) ? 0 : max(0, (int)$data->timelimit);
+    $data->timerwarnfirst = empty($data->timerwarnfirst) ? 2 : max(0, (int)$data->timerwarnfirst);
+    $data->timerwarnsecond = empty($data->timerwarnsecond) ? 1 : max(0, (int)$data->timerwarnsecond);
 
     $result = $DB->update_record('pgosce', $data);
     pgosce_grade_item_update($data);

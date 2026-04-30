@@ -60,10 +60,55 @@ class mod_pgosce_mod_form extends moodleform_mod {
         $mform->setType('markbuttonstep', PARAM_FLOAT);
         $mform->disabledIf('markbuttonstep', 'markinputtype', 'eq', 'textbox');
 
+        $mform->addElement('header', 'stationtimer', get_string('stationtimer', 'pgosce'));
+
+        $mform->addElement('text', 'timelimit', get_string('timelimit', 'pgosce'), ['size' => '6']);
+        $mform->addHelpButton('timelimit', 'timelimit', 'pgosce');
+        $mform->setDefault('timelimit', 0);
+        $mform->setType('timelimit', PARAM_INT);
+
+        $mform->addElement('text', 'timerwarnfirst', get_string('timerwarnfirst', 'pgosce'), ['size' => '6']);
+        $mform->setDefault('timerwarnfirst', 2);
+        $mform->setType('timerwarnfirst', PARAM_INT);
+        $mform->disabledIf('timerwarnfirst', 'timelimit', 'eq', 0);
+
+        $mform->addElement('text', 'timerwarnsecond', get_string('timerwarnsecond', 'pgosce'), ['size' => '6']);
+        $mform->setDefault('timerwarnsecond', 1);
+        $mform->setType('timerwarnsecond', PARAM_INT);
+        $mform->disabledIf('timerwarnsecond', 'timelimit', 'eq', 0);
+
         $this->standard_grading_coursemodule_elements();
         $mform->setDefault('grade', 100);
 
         $this->standard_coursemodule_elements();
         $this->add_action_buttons();
+    }
+
+    /**
+     * Validate timer settings.
+     *
+     * @param array $data Submitted data.
+     * @param array $files Submitted files.
+     * @return array
+     */
+    public function validation($data, $files) {
+        $errors = parent::validation($data, $files);
+
+        foreach (['timelimit', 'timerwarnfirst', 'timerwarnsecond'] as $field) {
+            if (isset($data[$field]) && (int)$data[$field] < 0) {
+                $errors[$field] = get_string('timerpositive', 'pgosce');
+            }
+        }
+
+        if (!empty($data['timelimit'])) {
+            if (!empty($data['timerwarnfirst']) && (int)$data['timerwarnfirst'] >= (int)$data['timelimit']) {
+                $errors['timerwarnfirst'] = get_string('timerwarnsmaller', 'pgosce');
+            }
+            if (!empty($data['timerwarnsecond']) && (int)$data['timerwarnsecond'] >= (int)$data['timelimit']) {
+                $errors['timerwarnsecond'] = get_string('timerwarnsmaller', 'pgosce');
+            }
+        }
+
+        return $errors;
     }
 }

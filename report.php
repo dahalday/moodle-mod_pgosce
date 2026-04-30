@@ -28,6 +28,14 @@ if (!$viewown) {
     if (!pgosce_has_full_access($context) && !pgosce_is_assigned_assessor($pgosce, $USER->id)) {
         throw new moodle_exception('notassignedassessor', 'pgosce');
     }
+    if (!pgosce_has_full_access($context) && $DB->record_exists('pgosce_attempt', [
+            'pgosceid' => $pgosce->id,
+            'userid' => $userid,
+            'assessorid' => $USER->id,
+            'status' => PGOSCE_STATUS_FINAL,
+        ])) {
+        throw new moodle_exception('finalattemptlocked', 'pgosce');
+    }
 } else if (empty($pgosce->displaystudentreports)) {
     throw new moodle_exception('reportnotavailable', 'pgosce');
 }
@@ -61,12 +69,22 @@ foreach ($attempts as $attempt) {
     if ($viewown && $attempt->status != PGOSCE_STATUS_FINAL) {
         continue;
     }
+    if (!$viewown && !pgosce_has_full_access($context) && $attempt->assessorid != $USER->id) {
+        continue;
+    }
     $assessor = core_user::get_user($attempt->assessorid);
     $calc = pgosce_calculate_attempt($attempt);
     echo $OUTPUT->heading(fullname($assessor) . ' - ' .
         ($attempt->status == PGOSCE_STATUS_FINAL ? get_string('complete', 'pgosce') : get_string('inprogress', 'pgosce')), 4);
     echo html_writer::tag('p', format_float($calc['earned'], 2) . ' / ' . format_float($calc['max'], 2) .
         ' (' . format_float($calc['percentage'], 2) . '%)');
+    if (!$viewown && pgosce_has_full_access($context)) {
+        echo html_writer::link(new moodle_url('/mod/pgosce/assess.php', [
+            'id' => $cm->id,
+            'userid' => $userid,
+            'attemptid' => $attempt->id,
+        ]), get_string('editmarks', 'pgosce'), ['class' => 'btn btn-sm btn-primary mb-2']);
+    }
 
     $scores = pgosce_get_scores($attempt->id);
     foreach ($rubric as $section) {
