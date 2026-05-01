@@ -1,0 +1,332 @@
+.pgosce-shell {
+    max-width: 1080px;
+    margin: 0 auto;
+}
+
+.pgosce-hero {
+    background: #17324d;
+    color: #fff;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.pgosce-hero h2,
+.pgosce-hero h3 {
+    color: #fff;
+    margin: 0;
+}
+
+.pgosce-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    margin-top: .85rem;
+}
+
+.pgosce-stat {
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 8px;
+    padding: .55rem .75rem;
+    min-width: 120px;
+}
+
+.pgosce-stat-label {
+    display: block;
+    color: rgba(255, 255, 255, .72);
+    font-size: .75rem;
+    text-transform: uppercase;
+}
+
+.pgosce-stat-value {
+    display: block;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.pgosce-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+.pgosce-panel {
+    background: #fff;
+    border: 1px solid #d8dde6;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.pgosce-panel-muted {
+    background: #f7f9fc;
+}
+
+.pgosce-section-card {
+    background: #fff;
+    border: 1px solid #d8dde6;
+    border-radius: 8px;
+    margin-bottom: .75rem;
+    overflow: hidden;
+}
+
+.pgosce-section-card summary {
+    cursor: pointer;
+    list-style: none;
+    padding: .9rem 1rem;
+}
+
+.pgosce-section-card summary::-webkit-details-marker {
+    display: none;
+}
+
+.pgosce-section-title {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+.pgosce-section-number {
+    align-items: center;
+    background: #17324d;
+    border-radius: 50%;
+    color: #fff;
+    display: inline-flex;
+    font-weight: 700;
+    height: 2rem;
+    justify-content: center;
+    width: 2rem;
+}
+
+.pgosce-section-name {
+    color: #17324d;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.pgosce-section-description {
+    border-top: 1px solid #edf0f5;
+    color: #354052;
+    padding: 0 1rem 1rem 3.75rem;
+}
+
+.pgosce-student-grid {
+    display: grid;
+    gap: .75rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.pgosce-student-card {
+    background: #fff;
+    border: 1px solid #d8dde6;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.pgosce-student-name {
+    color: #17324d;
+    font-weight: 700;
+    margin-bottom: .25rem;
+}
+
+.pgosce-badge {
+    background: #eef5ff;
+    border-radius: 999px;
+    color: #1f5fbf;
+    display: inline-block;
+    font-size: .8rem;
+    font-weight: 700;
+    padding: .2rem .6rem;
+}
+
+.pgosce-badge-complete {
+    background: #e8f7ee;
+    color: #16713a;
+}
+
+.pgosce-assessment {
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+.pgosce-assessment-topbar {
+    background: #17324d;
+    border-radius: 8px;
+    color: #fff;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 1rem;
+}
+
+.pgosce-question {
+    border-top: 1px solid #edf0f5;
+    padding: 1rem;
+}
+
+.pgosce-question-title {
+    color: #17324d;
+    font-weight: 700;
+    margin-bottom: .35rem;
+}
+
+.pgosce-criterion-row {
+    align-items: flex-start;
+    border-top: 1px solid #edf0f5;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) minmax(140px, 260px);
+    padding: 1rem 0;
+}
+
+.pgosce-criterion-text {
+    color: #263447;
+    line-height: 1.55;
+}
+
+.pgosce-score-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    justify-content: flex-end;
+}
+
+.pgosce-mark-entry {
+    background: #f8fafc;
+    border: 1px solid #e4e9f1;
+    border-radius: 8px;
+    padding: .55rem;
+}
+
+.pgosce-score-button {
+    background: #f4f7fb;
+    border: 2px solid #d8dde6;
+    border-radius: 8px;
+    color: #4a5c72;
+    font-weight: 700;
+    min-width: 2.75rem;
+    padding: .4rem .6rem;
+}
+
+.pgosce-score-button:hover {
+    border-color: #2c6fbb;
+    color: #1f5fbf;
+}
+
+.pgosce-score-button.active {
+    background: #e8f7ee;
+    border-color: #2c9655;
+    color: #16713a;
+}
+
+.pgosce-score-button.zero.active {
+    background: #fdecec;
+    border-color: #c84141;
+    color: #a72b2b;
+}
+
+.pgosce-comment {
+    margin-top: .5rem;
+    max-width: 720px;
+}
+
+.pgosce-comment input,
+.pgosce-comment textarea {
+    background: #f8fafc;
+}
+
+.pgosce-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: 1rem;
+}
+
+.pgosce-icon-button {
+    align-items: center;
+    display: inline-flex;
+    font-size: 1rem;
+    height: 2.25rem;
+    justify-content: center;
+    line-height: 1;
+    min-width: 2.25rem;
+    padding: .35rem;
+}
+
+.pgosce-criterion-mark-settings {
+    border-left: 1px solid #edf0f5;
+}
+
+.pgosce-criterion-mark-settings .form-group {
+    margin-bottom: .75rem;
+}
+
+.pgosce-criterion-mark-settings label {
+    font-weight: 600;
+}
+
+.pgosce-criterion-remove {
+    align-items: flex-end;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.pgosce-max-label {
+    color: #66758a;
+    font-size: .8rem;
+    margin-top: .3rem;
+    text-align: right;
+}
+
+.pgosce-timer-warning {
+    background: rgba(255, 210, 88, .22);
+    border-color: rgba(255, 210, 88, .45);
+}
+
+.pgosce-timer-expired {
+    background: rgba(220, 38, 38, .22);
+    border-color: rgba(220, 38, 38, .45);
+}
+
+.pgosce-timer-toast {
+    background: #17324d;
+    border-radius: 8px;
+    box-shadow: 0 12px 30px rgba(23, 50, 77, .22);
+    color: #fff;
+    font-weight: 700;
+    max-width: min(420px, calc(100vw - 2rem));
+    opacity: 0;
+    padding: .85rem 1rem;
+    pointer-events: none;
+    position: fixed;
+    right: 1rem;
+    top: 1rem;
+    transform: translateY(-.5rem);
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 1050;
+}
+
+.pgosce-timer-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (max-width: 700px) {
+    .pgosce-criterion-row {
+        grid-template-columns: 1fr;
+    }
+
+    .pgosce-score-buttons {
+        justify-content: flex-start;
+    }
+
+    .pgosce-section-description {
+        padding-left: 1rem;
+    }
+}
