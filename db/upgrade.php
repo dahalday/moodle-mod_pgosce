@@ -278,5 +278,9 @@ function xmldb_pgosce_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026050109, 'pgosce');
     }
 
+    if ($oldversion < 2026050110) {
+        upgrade_mod_savepoint(true, 2026050110, 'pgosce');
+    }
+
     return true;
 }
