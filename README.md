@@ -104,6 +104,7 @@ Basic format:
 [Settings]
 ShowStudentInstructions: yes
 ReleaseStudentReports: no
+ShowGradesInGradebook: yes
 
 [Section] GTN
 Candidate's instructions:
@@ -147,18 +148,52 @@ AI prompt for converting a Word OSCE station:
 ```text
 Convert the OSCE station below into PG OSCE GIFT format for a Moodle PG OSCE plugin.
 
+Context:
+- The source may be copied from a Word document and may contain OSCE/SCOE tables.
+- In tables, candidate instructions, examiner questions, prompts, answer keys, criteria and marks may be in separate cells.
+- Sometimes several markable criteria are grouped together inside one table cell.
+
 Rules:
 - Output only plain text PG OSCE GIFT.
 - Use ::Station:: followed by a concise station name.
+- Include a [Settings] block with:
+  ShowStudentInstructions: no
+  ReleaseStudentReports: no
+  ShowGradesInGradebook: yes
 - Put candidate-facing scenario/instructions under [Section].
-- Put examiner questions under [Question].
-- Put examiner prompts after Prompt:.
-- Convert the marking guide into criteria lines starting with =.
-- End every criterion with ::mark.
+- If the Word document has multiple stations or domains, create one [Section] per station/domain.
+- Put each examiner question under [Question].
+- Put the examiner question text after Prompt:.
+- Convert the answer key or marking guide into criteria lines starting with =.
+- End every criterion with ::mark, for example ::1, ::2, or ::0.5.
 - Preserve clinical meaning but make criteria concise and markable.
+- If one table cell contains several separate criteria, split them into separate = lines.
+- Split grouped criteria when they are separated by line breaks, semicolons, numbering, bullets, commas with separate actions, or phrases such as "and", "including", "mentions", "lists", "discusses".
+- Do not split a cell if it is clearly one holistic criterion with one mark.
+- If a grouped cell has a total mark but no individual marks, divide marks logically across the criteria when obvious; otherwise use ::1 for each criterion and keep the total reasonable.
+- If the source gives individual marks, preserve them exactly.
+- Do not invent clinical facts that are not present in the document.
+- Do not include student instructions as marking criteria unless they are also in the answer key.
 - Do not include markdown tables.
 - Do not include explanations outside the PG OSCE GIFT text.
 
 OSCE station text:
 [paste the Word document content here]
+```
+
+Example conversion of a grouped table cell:
+
+Source table cell:
+
+```text
+Risk assessment: breast cancer risk 60-70%; ovarian cancer risk around 40%;
+mentions pancreatic or contralateral breast cancer risk. 3 marks
+```
+
+PG OSCE GIFT criteria:
+
+```text
+= States lifetime breast cancer risk is approximately 60-70% ::1
+= States lifetime ovarian cancer risk is approximately 40% ::1
+= Mentions other associated risks such as pancreatic cancer or contralateral breast cancer ::1
 ```
