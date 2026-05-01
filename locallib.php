@@ -897,6 +897,25 @@ function pgosce_get_students(context_module $context) {
  * @return bool
  */
 function pgosce_has_full_access(context_module $context, $userid = null) {
+    global $USER;
+
+    if ($userid === null) {
+        $userid = $USER->id;
+    }
+
+    $isswitchedrole = false;
+    if ($userid == $USER->id && function_exists('is_role_switched')) {
+        $coursecontext = $context->get_course_context(IGNORE_MISSING);
+        if ($coursecontext) {
+            $isswitchedrole = is_role_switched($coursecontext->instanceid);
+        }
+    }
+
+    if ($isswitchedrole) {
+        return has_capability('mod/pgosce:manage', $context, $userid) ||
+            has_capability('mod/pgosce:assignassessors', $context, $userid);
+    }
+
     return has_capability('mod/pgosce:manage', $context, $userid) ||
         has_capability('mod/pgosce:assignassessors', $context, $userid) ||
         has_capability('moodle/site:config', context_system::instance(), $userid);
