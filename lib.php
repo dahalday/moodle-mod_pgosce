@@ -150,7 +150,14 @@ function pgosce_cm_info_dynamic(cm_info $cm) {
 
     $context = context_module::instance($cm->id);
     if (!pgosce_can_view_activity($pgosce, $context)) {
+        $cm->set_available(false, 0);
         $cm->set_user_visible(false);
+        $cm->set_no_view_link();
+        $cm->set_content('', true);
+        $cm->set_after_link('');
+        if (method_exists($cm, 'set_custom_cmlist_item')) {
+            $cm->set_custom_cmlist_item(true);
+        }
     }
 }
 
