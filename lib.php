@@ -179,6 +179,7 @@ function pgosce_grade_item_update(stdClass $pgosce, $grades = null) {
         'gradetype' => GRADE_TYPE_VALUE,
         'grademax' => max(0, (float)$pgosce->grade),
         'grademin' => 0,
+        'hidden' => 0,
     ];
 
     if (isset($pgosce->gradepass)) {

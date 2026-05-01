@@ -225,5 +225,14 @@ function xmldb_pgosce_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026050102, 'pgosce');
     }
 
+    if ($oldversion < 2026050105) {
+        $DB->set_field('grade_items', 'hidden', 0, [
+            'itemtype' => 'mod',
+            'itemmodule' => 'pgosce',
+        ]);
+
+        upgrade_mod_savepoint(true, 2026050105, 'pgosce');
+    }
+
     return true;
 }
