@@ -21,10 +21,15 @@
 - Detailed CSV exports for criterion-level audit data
 - PG OSCE GIFT-style rubric import/export for preparing stations from Word documents
 - Assessor assignment for non-editing teachers by course default or by individual station
+- Non-editing teacher attempts lock after finalization; editing teachers, managers and admins can still revise marks
+- Configurable mark entry display: buttons or numeric text boxes
+- Configurable button scale steps: whole marks, half marks or quarter marks
+- Optional station countdown timer with non-blocking reminder popups
 - Moodle backup/restore support, so course activity duplication copies the OSCE setup and rubric
 - Moodle activity icons in `pix/icon.svg` and `pix/monologo.svg`
 - Moodle course reset options for deleting assessment attempts/grades and optionally deleting station rubrics
 - Rich-text rubric fields using Moodle's editor and plugin file areas for uploaded media
+- Compact trash-icon controls in the rubric editor to keep section, question and criterion controls inside the frame
 
 ## Co-installation safety
 
@@ -64,14 +69,21 @@ php admin/cli/upgrade.php
 
 1. Add a **PG OSCE** activity to a course.
 2. Open **Edit rubric** and create the station sections, candidate-facing section descriptions, questions, answer-key criteria and marks.
-3. Assess each student from the activity page.
-4. Use **Save and finalize** to push the calculated mark into the Moodle gradebook.
-5. Export all criterion-level data as CSV for Excel analysis.
-6. Use **PG OSCE GIFT import/export** to reuse or prepare rubrics as plain text.
+3. In the activity settings, choose the mark entry style:
+   - **Buttons** for fast marking with whole, half or quarter mark scales.
+   - **Text box** for large or flexible mark ranges.
+4. Optionally set a station timer duration and reminder points such as 2 minutes and 1 minute remaining.
+5. Assess each student from the activity page.
+6. Use **Save and finalize** to push the calculated mark into the Moodle gradebook.
+7. Export all criterion-level data as CSV for Excel analysis.
+8. Use **PG OSCE GIFT import/export** to reuse or prepare rubrics as plain text.
 
 Non-editing teachers can assess only when they are assigned as a course default OSCE assessor or
 assigned to the individual station. They do not receive rubric editing, station import/export or marks
-download permissions by default. Editing teachers, managers and admins keep full access.
+download permissions by default. After a non-editing teacher finalizes an assessment attempt, that
+attempt is locked for that teacher and the activity no longer shows assess/report actions for that
+student. Editing teachers, managers and admins keep full access and can reopen a finalized attempt
+from the report page using **Edit marks**.
 
 Teachers can turn **Show section instructions to students** on or off in the activity settings or from
 the **Edit rubric** page. When enabled, students can see the section names and section descriptions
@@ -85,6 +97,15 @@ only included when Moodle backup/restore is explicitly run with user data.
 Rubrics can be edited after attempts exist. Existing criterion IDs are preserved when possible, so marks
 remain attached to edited criteria. If criteria are removed, only scores for those removed criteria are
 deleted and should be reviewed by assessors.
+
+## Timer Behavior
+
+The station timer is configured per activity by editing roles. Set **Timer duration in minutes** to `0`
+to disable it. When enabled, the assessment page shows a countdown and displays reminder popups at
+the configured minute thresholds. These reminders are non-blocking and disappear after 3 seconds, so
+the countdown continues even if the assessor does not click anything.
+
+The timer is a workflow/reminder aid. It does not auto-submit or lock the form when time expires.
 
 ## PG OSCE GIFT format
 
