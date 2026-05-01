@@ -94,6 +94,9 @@ function pgosce_update_instance(stdClass $data) {
     if (!isset($data->showstudentinstructions)) {
         $data->showstudentinstructions = 0;
     }
+    if (!isset($data->showgradesingradebook)) {
+        $data->showgradesingradebook = 0;
+    }
     if (empty($data->markinputtype)) {
         $data->markinputtype = 'buttons';
     }
@@ -146,7 +149,7 @@ function pgosce_cm_info_dynamic(cm_info $cm) {
     global $DB;
 
     $pgosce = $DB->get_record('pgosce', ['id' => $cm->instance],
-        'id, course, showstudentinstructions', IGNORE_MISSING);
+        'id, course, displaystudentreports, showstudentinstructions, showgradesingradebook', IGNORE_MISSING);
     if (!$pgosce) {
         return;
     }
@@ -182,7 +185,8 @@ function pgosce_grade_item_update(stdClass $pgosce, $grades = null) {
         'gradetype' => GRADE_TYPE_VALUE,
         'grademax' => max(0, (float)$pgosce->grade),
         'grademin' => 0,
-        'hidden' => empty($pgosce->showgradesingradebook) ? 1 : 0,
+        'hidden' => (empty($pgosce->showgradesingradebook) && empty($pgosce->displaystudentreports) &&
+            empty($pgosce->showstudentinstructions)) ? 1 : 0,
     ];
 
     if (isset($pgosce->gradepass)) {

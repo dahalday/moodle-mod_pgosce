@@ -242,5 +242,17 @@ function xmldb_pgosce_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026050106, 'pgosce');
     }
 
+    if ($oldversion < 2026050107) {
+        require_once($CFG->dirroot . '/mod/pgosce/lib.php');
+
+        $instances = $DB->get_records('pgosce', [], '',
+            'id, course, name, grade, displaystudentreports, showstudentinstructions, showgradesingradebook');
+        foreach ($instances as $pgosce) {
+            pgosce_update_grades($pgosce, 0, false);
+        }
+
+        upgrade_mod_savepoint(true, 2026050107, 'pgosce');
+    }
+
     return true;
 }

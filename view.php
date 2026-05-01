@@ -188,6 +188,8 @@ if ($canassess) {
     if (!empty($pgosce->displaystudentreports)) {
         echo html_writer::link(new moodle_url('/mod/pgosce/report.php', ['id' => $cm->id, 'userid' => $USER->id]),
             get_string('viewownreport', 'pgosce'), ['class' => 'btn btn-primary']);
+    } else if (!empty($pgosce->showgradesingradebook)) {
+        echo $OUTPUT->notification(get_string('gradebookonlyavailable', 'pgosce'), 'info');
     } else if (!$rubric) {
         echo $OUTPUT->notification(get_string('reportnotavailable', 'pgosce'), 'info');
     }
