@@ -50,7 +50,10 @@ class restore_pgosce_activity_structure_step extends restore_activity_structure_
         $data = (object)$data;
         $data->course = $this->get_courseid();
         if (!isset($data->showstudentinstructions)) {
-            $data->showstudentinstructions = 1;
+            $data->showstudentinstructions = 0;
+        }
+        if (!isset($data->showgradesingradebook)) {
+            $data->showgradesingradebook = 0;
         }
         if (empty($data->markinputtype)) {
             $data->markinputtype = 'buttons';

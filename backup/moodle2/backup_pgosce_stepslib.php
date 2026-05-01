@@ -31,6 +31,7 @@ class backup_pgosce_activity_structure_step extends backup_activity_structure_st
             'grade',
             'displaystudentreports',
             'showstudentinstructions',
+            'showgradesingradebook',
             'markinputtype',
             'markbuttonstep',
             'timelimit',

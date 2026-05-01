@@ -341,6 +341,7 @@ function pgosce_export_gift(stdClass $pgosce) {
         '[Settings]',
         'ShowStudentInstructions: ' . (empty($pgosce->showstudentinstructions) ? 'no' : 'yes'),
         'ReleaseStudentReports: ' . (empty($pgosce->displaystudentreports) ? 'no' : 'yes'),
+        'ShowGradesInGradebook: ' . (empty($pgosce->showgradesingradebook) ? 'no' : 'yes'),
         '',
     ];
 
@@ -400,7 +401,7 @@ function pgosce_parse_gift($text) {
 
         if (strpos($line, '#') === 0 || preg_match('/^::\s*Station\s*::/i', $line) ||
                 preg_match('/^\[Settings\]$/i', $line) ||
-                preg_match('/^(ShowStudentInstructions|ReleaseStudentReports)\s*:/i', $line)) {
+                preg_match('/^(ShowStudentInstructions|ReleaseStudentReports|ShowGradesInGradebook)\s*:/i', $line)) {
             continue;
         }
 
@@ -499,6 +500,9 @@ function pgosce_parse_gift_settings($text) {
         }
         if (preg_match('/^ReleaseStudentReports\s*:\s*(yes|no|1|0|true|false)$/i', $line, $matches)) {
             $settings['displaystudentreports'] = in_array(strtolower($matches[1]), ['yes', '1', 'true']) ? 1 : 0;
+        }
+        if (preg_match('/^ShowGradesInGradebook\s*:\s*(yes|no|1|0|true|false)$/i', $line, $matches)) {
+            $settings['showgradesingradebook'] = in_array(strtolower($matches[1]), ['yes', '1', 'true']) ? 1 : 0;
         }
     }
 

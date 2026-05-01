@@ -226,12 +226,20 @@ function xmldb_pgosce_upgrade($oldversion) {
     }
 
     if ($oldversion < 2026050105) {
-        $DB->set_field('grade_items', 'hidden', 0, [
-            'itemtype' => 'mod',
-            'itemmodule' => 'pgosce',
-        ]);
-
         upgrade_mod_savepoint(true, 2026050105, 'pgosce');
+    }
+
+    if ($oldversion < 2026050106) {
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('pgosce');
+
+        $field = new xmldb_field('showgradesingradebook', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0',
+            'showstudentinstructions');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026050106, 'pgosce');
     }
 
     return true;

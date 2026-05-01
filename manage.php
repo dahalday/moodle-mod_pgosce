@@ -377,14 +377,18 @@ if (data_submitted() && confirm_sesskey()) {
         $rubric = clean_param_array($_POST['rubric'], PARAM_RAW, true);
     }
     $showstudentinstructions = optional_param('showstudentinstructions', 0, PARAM_BOOL);
+    $showgradesingradebook = optional_param('showgradesingradebook', 0, PARAM_BOOL);
     if (!empty($rubric)) {
         $DB->update_record('pgosce', (object)[
             'id' => $pgosce->id,
             'showstudentinstructions' => $showstudentinstructions,
+            'showgradesingradebook' => $showgradesingradebook,
             'timemodified' => time(),
         ]);
         $pgosce->showstudentinstructions = $showstudentinstructions;
+        $pgosce->showgradesingradebook = $showgradesingradebook;
         pgosce_save_rubric_array($pgosce->id, $rubric, $context);
+        pgosce_update_grades($pgosce, 0, false);
         rebuild_course_cache($course->id, true);
         redirect($PAGE->url, get_string('rubricsaved', 'pgosce'), null, \core\output\notification::NOTIFY_SUCCESS);
     }
@@ -394,9 +398,12 @@ if (data_submitted() && confirm_sesskey()) {
         $DB->update_record('pgosce', (object)[
             'id' => $pgosce->id,
             'showstudentinstructions' => $showstudentinstructions,
+            'showgradesingradebook' => $showgradesingradebook,
             'timemodified' => time(),
         ]);
         $pgosce->showstudentinstructions = $showstudentinstructions;
+        $pgosce->showgradesingradebook = $showgradesingradebook;
+        pgosce_update_grades($pgosce, 0, false);
         rebuild_course_cache($course->id, true);
         redirect($PAGE->url, get_string('rubricsaved', 'pgosce'), null, \core\output\notification::NOTIFY_SUCCESS);
     }
@@ -545,6 +552,15 @@ echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', '
 echo html_writer::start_div('card mb-3');
 echo html_writer::start_div('card-body');
 echo html_writer::tag('h4', get_string('studentviewsettings', 'pgosce'));
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'showgradesingradebook', 'value' => 0]);
+echo html_writer::checkbox(
+    'showgradesingradebook',
+    1,
+    !empty($pgosce->showgradesingradebook),
+    get_string('showgradesingradebook', 'pgosce'),
+    ['id' => 'id_showgradesingradebook']
+);
+echo html_writer::div(get_string('showgradesingradebook_help', 'pgosce'), 'form-text text-muted mb-3');
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'showstudentinstructions', 'value' => 0]);
 echo html_writer::checkbox(
     'showstudentinstructions',

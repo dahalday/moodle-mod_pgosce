@@ -51,8 +51,11 @@ if (data_submitted() && confirm_sesskey() && $action === 'import') {
         ];
         foreach (pgosce_parse_gift_settings($gifttext) as $name => $value) {
             $updates->{$name} = $value;
+            $pgosce->{$name} = $value;
         }
         $DB->update_record('pgosce', $updates);
+        pgosce_update_grades($pgosce, 0, false);
+        rebuild_course_cache($course->id, true);
         redirect($PAGE->url, get_string('giftimported', 'pgosce'), null, \core\output\notification::NOTIFY_SUCCESS);
     }
 

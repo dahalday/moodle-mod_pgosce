@@ -56,6 +56,9 @@ function pgosce_add_instance(stdClass $data) {
     if (!isset($data->showstudentinstructions)) {
         $data->showstudentinstructions = 0;
     }
+    if (!isset($data->showgradesingradebook)) {
+        $data->showgradesingradebook = 0;
+    }
     if (empty($data->markinputtype)) {
         $data->markinputtype = 'buttons';
     }
@@ -179,7 +182,7 @@ function pgosce_grade_item_update(stdClass $pgosce, $grades = null) {
         'gradetype' => GRADE_TYPE_VALUE,
         'grademax' => max(0, (float)$pgosce->grade),
         'grademin' => 0,
-        'hidden' => 0,
+        'hidden' => empty($pgosce->showgradesingradebook) ? 1 : 0,
     ];
 
     if (isset($pgosce->gradepass)) {
