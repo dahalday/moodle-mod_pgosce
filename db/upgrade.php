@@ -246,8 +246,7 @@ function xmldb_pgosce_upgrade($oldversion) {
         $instances = $DB->get_records('pgosce', [], '',
             'id, course, displaystudentreports, showstudentinstructions, showgradesingradebook');
         foreach ($instances as $pgosce) {
-            $hidden = (empty($pgosce->showgradesingradebook) && empty($pgosce->displaystudentreports) &&
-                empty($pgosce->showstudentinstructions)) ? 1 : 0;
+            $hidden = empty($pgosce->showgradesingradebook) ? 1 : 0;
             $DB->set_field('grade_items', 'hidden', $hidden, [
                 'courseid' => $pgosce->course,
                 'itemtype' => 'mod',
@@ -262,6 +261,21 @@ function xmldb_pgosce_upgrade($oldversion) {
 
     if ($oldversion < 2026050108) {
         upgrade_mod_savepoint(true, 2026050108, 'pgosce');
+    }
+
+    if ($oldversion < 2026050109) {
+        $instances = $DB->get_records('pgosce', [], '', 'id, course, showgradesingradebook');
+        foreach ($instances as $pgosce) {
+            $DB->set_field('grade_items', 'hidden', empty($pgosce->showgradesingradebook) ? 1 : 0, [
+                'courseid' => $pgosce->course,
+                'itemtype' => 'mod',
+                'itemmodule' => 'pgosce',
+                'iteminstance' => $pgosce->id,
+                'itemnumber' => 0,
+            ]);
+        }
+
+        upgrade_mod_savepoint(true, 2026050109, 'pgosce');
     }
 
     return true;

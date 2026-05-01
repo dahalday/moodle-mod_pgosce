@@ -974,8 +974,8 @@ function pgosce_can_assess_station(stdClass $pgosce, context_module $context, $u
  * Can this user see this PG OSCE activity in the course or direct activity view?
  *
  * Editing teachers, managers and administrators always see it. Non-editing
- * teachers see only assigned stations. Students see a limited activity shell
- * when instructions, released reports, or gradebook visibility are enabled.
+ * teachers see only assigned stations. Students see the activity only when
+ * candidate section instructions are released.
  *
  * @param stdClass $pgosce
  * @param context_module $context
@@ -998,9 +998,7 @@ function pgosce_can_view_activity(stdClass $pgosce, context_module $context, $us
         return pgosce_is_assigned_assessor($pgosce, $userid);
     }
 
-    return !empty($pgosce->showstudentinstructions) ||
-        !empty($pgosce->displaystudentreports) ||
-        !empty($pgosce->showgradesingradebook);
+    return !empty($pgosce->showstudentinstructions);
 }
 
 /**
