@@ -243,15 +243,25 @@ function xmldb_pgosce_upgrade($oldversion) {
     }
 
     if ($oldversion < 2026050107) {
-        require_once($CFG->dirroot . '/mod/pgosce/lib.php');
-
         $instances = $DB->get_records('pgosce', [], '',
-            'id, course, name, grade, displaystudentreports, showstudentinstructions, showgradesingradebook');
+            'id, course, displaystudentreports, showstudentinstructions, showgradesingradebook');
         foreach ($instances as $pgosce) {
-            pgosce_update_grades($pgosce, 0, false);
+            $hidden = (empty($pgosce->showgradesingradebook) && empty($pgosce->displaystudentreports) &&
+                empty($pgosce->showstudentinstructions)) ? 1 : 0;
+            $DB->set_field('grade_items', 'hidden', $hidden, [
+                'courseid' => $pgosce->course,
+                'itemtype' => 'mod',
+                'itemmodule' => 'pgosce',
+                'iteminstance' => $pgosce->id,
+                'itemnumber' => 0,
+            ]);
         }
 
         upgrade_mod_savepoint(true, 2026050107, 'pgosce');
+    }
+
+    if ($oldversion < 2026050108) {
+        upgrade_mod_savepoint(true, 2026050108, 'pgosce');
     }
 
     return true;
