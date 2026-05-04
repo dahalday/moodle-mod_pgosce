@@ -282,5 +282,18 @@ function xmldb_pgosce_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026050110, 'pgosce');
     }
 
+    if ($oldversion < 2026050111) {
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('pgosce');
+
+        $field = new xmldb_field('assessoridnumberonly', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0',
+            'showgradesingradebook');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026050111, 'pgosce');
+    }
+
     return true;
 }

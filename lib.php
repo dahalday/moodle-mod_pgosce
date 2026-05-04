@@ -59,6 +59,9 @@ function pgosce_add_instance(stdClass $data) {
     if (!isset($data->showgradesingradebook)) {
         $data->showgradesingradebook = 0;
     }
+    if (!isset($data->assessoridnumberonly)) {
+        $data->assessoridnumberonly = 0;
+    }
     if (empty($data->markinputtype)) {
         $data->markinputtype = 'buttons';
     }
@@ -96,6 +99,9 @@ function pgosce_update_instance(stdClass $data) {
     }
     if (!isset($data->showgradesingradebook)) {
         $data->showgradesingradebook = 0;
+    }
+    if (!isset($data->assessoridnumberonly)) {
+        $data->assessoridnumberonly = 0;
     }
     if (empty($data->markinputtype)) {
         $data->markinputtype = 'buttons';

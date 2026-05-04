@@ -378,15 +378,18 @@ if (data_submitted() && confirm_sesskey()) {
     }
     $showstudentinstructions = optional_param('showstudentinstructions', 0, PARAM_BOOL);
     $showgradesingradebook = optional_param('showgradesingradebook', 0, PARAM_BOOL);
+    $assessoridnumberonly = optional_param('assessoridnumberonly', 0, PARAM_BOOL);
     if (!empty($rubric)) {
         $DB->update_record('pgosce', (object)[
             'id' => $pgosce->id,
             'showstudentinstructions' => $showstudentinstructions,
             'showgradesingradebook' => $showgradesingradebook,
+            'assessoridnumberonly' => $assessoridnumberonly,
             'timemodified' => time(),
         ]);
         $pgosce->showstudentinstructions = $showstudentinstructions;
         $pgosce->showgradesingradebook = $showgradesingradebook;
+        $pgosce->assessoridnumberonly = $assessoridnumberonly;
         pgosce_save_rubric_array($pgosce->id, $rubric, $context);
         pgosce_update_grades($pgosce, 0, false);
         rebuild_course_cache($course->id, true);
@@ -399,10 +402,12 @@ if (data_submitted() && confirm_sesskey()) {
             'id' => $pgosce->id,
             'showstudentinstructions' => $showstudentinstructions,
             'showgradesingradebook' => $showgradesingradebook,
+            'assessoridnumberonly' => $assessoridnumberonly,
             'timemodified' => time(),
         ]);
         $pgosce->showstudentinstructions = $showstudentinstructions;
         $pgosce->showgradesingradebook = $showgradesingradebook;
+        $pgosce->assessoridnumberonly = $assessoridnumberonly;
         pgosce_update_grades($pgosce, 0, false);
         rebuild_course_cache($course->id, true);
         redirect($PAGE->url, get_string('rubricsaved', 'pgosce'), null, \core\output\notification::NOTIFY_SUCCESS);
@@ -570,6 +575,20 @@ echo html_writer::checkbox(
     ['id' => 'id_showstudentinstructions']
 );
 echo html_writer::div(get_string('showstudentinstructions_help', 'pgosce'), 'form-text text-muted');
+echo html_writer::end_div();
+echo html_writer::end_div();
+echo html_writer::start_div('card mb-3');
+echo html_writer::start_div('card-body');
+echo html_writer::tag('h4', get_string('assessorprivacysettings', 'pgosce'));
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'assessoridnumberonly', 'value' => 0]);
+echo html_writer::checkbox(
+    'assessoridnumberonly',
+    1,
+    !empty($pgosce->assessoridnumberonly),
+    get_string('assessoridnumberonly', 'pgosce'),
+    ['id' => 'id_assessoridnumberonly']
+);
+echo html_writer::div(get_string('assessoridnumberonly_help', 'pgosce'), 'form-text text-muted');
 echo html_writer::end_div();
 echo html_writer::end_div();
 echo html_writer::start_div('', ['id' => 'pgosce-rubric-editor']);

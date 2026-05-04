@@ -172,7 +172,7 @@ if ($canassess) {
                 $actions = html_writer::span(get_string('finalattemptlocked', 'pgosce'), 'text-muted small');
             }
             echo html_writer::start_div('pgosce-student-card');
-            echo html_writer::div(fullname($student), 'pgosce-student-name');
+            echo html_writer::div(pgosce_format_student_display($student, $pgosce, $context), 'pgosce-student-name');
             echo html_writer::div($status, 'pgosce-badge' . ($grade ? ' pgosce-badge-complete' : ''));
             echo html_writer::div(get_string('percentage', 'pgosce') . ': ' . $percentage, 'mt-2');
             echo html_writer::div(get_string('grade', 'pgosce') . ': ' . $rawgrade, 'text-muted');

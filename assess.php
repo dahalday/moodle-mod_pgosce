@@ -214,7 +214,7 @@ echo html_writer::start_div('pgosce-assessment');
 echo html_writer::start_div('pgosce-assessment-topbar');
 echo html_writer::div(
     html_writer::span(get_string('student', 'pgosce'), 'pgosce-stat-label') .
-    html_writer::span(fullname($student), 'pgosce-stat-value'),
+    html_writer::span(pgosce_format_student_display($student, $pgosce, $context), 'pgosce-stat-value'),
     'pgosce-stat'
 );
 echo html_writer::div(

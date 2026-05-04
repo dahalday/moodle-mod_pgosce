@@ -55,6 +55,9 @@ class restore_pgosce_activity_structure_step extends restore_activity_structure_
         if (!isset($data->showgradesingradebook)) {
             $data->showgradesingradebook = 0;
         }
+        if (!isset($data->assessoridnumberonly)) {
+            $data->assessoridnumberonly = 0;
+        }
         if (empty($data->markinputtype)) {
             $data->markinputtype = 'buttons';
         }

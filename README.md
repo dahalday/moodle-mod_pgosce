@@ -21,6 +21,7 @@
 - Detailed CSV exports for criterion-level audit data
 - PG OSCE GIFT-style rubric import/export for preparing stations from Word documents
 - Assessor assignment for non-editing teachers by course default or by individual station
+- Optional student identity masking for assigned non-editing teachers, using student ID number instead of name
 - Moodle backup/restore support, so course activity duplication copies the OSCE setup and rubric
 - Moodle activity icons in `pix/icon.svg` and `pix/monologo.svg`
 - Moodle course reset options for deleting assessment attempts/grades and optionally deleting station rubrics
@@ -73,6 +74,11 @@ Non-editing teachers can assess only when they are assigned as a course default 
 assigned to the individual station. They do not receive rubric editing, station import/export or marks
 download permissions by default. Editing teachers, managers and admins keep full access.
 
+Teachers can enable **Show student ID only to assigned assessors** when blind or privacy-sensitive
+marking is needed. Assigned non-editing teachers then see each candidate by student ID number
+instead of name. Editing teachers, managers and admins still see both student names and ID numbers.
+If a user has no Moodle ID number, the plugin falls back to the Moodle user ID.
+
 Teachers can turn **Show section instructions to students** on or off in the activity settings or from
 the **Edit rubric** page. When enabled, students can see the section names and section descriptions
 on the activity page. They cannot see question prompts, criteria, marks, assessor comments or marking
@@ -105,6 +111,7 @@ Basic format:
 ShowStudentInstructions: yes
 ReleaseStudentReports: no
 ShowGradesInGradebook: yes
+AssessorIDNumberOnly: no
 
 [Section] GTN
 Candidate's instructions:
@@ -160,6 +167,7 @@ Rules:
   ShowStudentInstructions: no
   ReleaseStudentReports: no
   ShowGradesInGradebook: yes
+  AssessorIDNumberOnly: no
 - Put candidate-facing scenario/instructions under [Section].
 - If the Word document has multiple stations or domains, create one [Section] per station/domain.
 - Put each examiner question under [Question].

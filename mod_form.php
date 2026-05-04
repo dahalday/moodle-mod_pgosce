@@ -40,6 +40,10 @@ class mod_pgosce_mod_form extends moodleform_mod {
         $mform->addHelpButton('showstudentinstructions', 'showstudentinstructions', 'pgosce');
         $mform->setDefault('showstudentinstructions', 0);
 
+        $mform->addElement('advcheckbox', 'assessoridnumberonly', get_string('assessoridnumberonly', 'pgosce'));
+        $mform->addHelpButton('assessoridnumberonly', 'assessoridnumberonly', 'pgosce');
+        $mform->setDefault('assessoridnumberonly', 0);
+
         $mform->addElement('header', 'markingdisplay', get_string('markingdisplay', 'pgosce'));
 
         $mform->addElement('select', 'markinputtype', get_string('markinputtype', 'pgosce'), [

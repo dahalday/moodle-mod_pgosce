@@ -51,7 +51,7 @@ echo $OUTPUT->header();
 echo html_writer::start_div('pgosce-shell');
 echo html_writer::start_div('pgosce-hero');
 echo html_writer::tag('h2', format_string($pgosce->name));
-echo html_writer::tag('h3', fullname($student));
+echo html_writer::tag('h3', pgosce_format_student_display($student, $pgosce, $context));
 echo html_writer::end_div();
 
 $grade = pgosce_calculate_student_grade($pgosce, $userid);
