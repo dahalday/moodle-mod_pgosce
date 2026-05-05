@@ -92,6 +92,8 @@ Rubrics can be edited after attempts exist. Existing criterion IDs are preserved
 remain attached to edited criteria. If criteria are removed, only scores for those removed criteria are
 deleted and should be reviewed by assessors.
 
+For step-by-step role instructions, see `USER_GUIDE.md`.
+
 ## PG OSCE GIFT format
 
 PG OSCE GIFT is a plain-text format inspired by Moodle GIFT, but designed for OSCE station rubrics.
