@@ -14,7 +14,7 @@
 - Optional student-facing station instructions from section names and rich-text section descriptions
 - Blank station rubric: teachers create the questions, answer-key criteria and marks for each station
 - Teacher assessment per student
-- Multiple assessor attempts are averaged after finalization
+- Multiple assessor attempts are averaged only after markers use **Save and finalize**
 - Gradebook synchronization using Moodle `grade_update()`
 - Student report release toggle
 - Excel-style CSV exports for averaged marker scores and individual marker scores
@@ -66,8 +66,8 @@ php admin/cli/upgrade.php
 1. Add a **PG OSCE** activity to a course.
 2. Open **Edit rubric** and create the station sections, candidate-facing section descriptions, questions, answer-key criteria and marks.
 3. Assess each student from the activity page.
-4. Use **Save and finalize** to push the calculated mark into the Moodle gradebook.
-5. Export all criterion-level data as CSV for Excel analysis.
+4. Use **Save and finalize** to include that marker's score in averages and push the calculated mark into the Moodle gradebook.
+5. Export all criterion-level data as CSV for Excel analysis. Average exports use finalized marker scores only; individual exports still show draft/in-progress marker rows for audit.
 6. Use **PG OSCE GIFT import/export** to reuse or prepare rubrics as plain text.
 
 Non-editing teachers can assess only when they are assigned as a course default OSCE assessor or

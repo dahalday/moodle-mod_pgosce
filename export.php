@@ -167,6 +167,21 @@ function pgosce_export_attempt_summary_row(stdClass $pgosce, stdClass $attempt, 
 }
 
 /**
+ * Keep only finalized marker submissions for averaged exports.
+ *
+ * Draft saves are useful in individual exports, but should not lower an
+ * official average until the marker has used Save and finalize.
+ *
+ * @param array $attempts
+ * @return array
+ */
+function pgosce_export_final_attempts(array $attempts) {
+    return array_values(array_filter($attempts, function($attempt) {
+        return $attempt->status == PGOSCE_STATUS_FINAL;
+    }));
+}
+
+/**
  * Average summary row in the Excel-style format.
  *
  * @param stdClass $student
@@ -176,19 +191,16 @@ function pgosce_export_attempt_summary_row(stdClass $pgosce, stdClass $attempt, 
  * @return array
  */
 function pgosce_export_average_summary_row(stdClass $student, array $attempts, array $columns, $totalmax) {
-    $attemptcount = count($attempts);
-    $allfinished = true;
+    $finalattempts = pgosce_export_final_attempts($attempts);
+    $attemptcount = count($finalattempts);
+    $excludedcount = count($attempts) - $attemptcount;
     $latestcompleted = 0;
     $sections = [];
     $criteriontotals = [];
     $criterioncounts = [];
 
-    foreach ($attempts as $attempt) {
-        if ($attempt->status != PGOSCE_STATUS_FINAL) {
-            $allfinished = false;
-        } else {
-            $latestcompleted = max($latestcompleted, (int)$attempt->timemodified);
-        }
+    foreach ($finalattempts as $attempt) {
+        $latestcompleted = max($latestcompleted, (int)$attempt->timemodified);
         $scores = pgosce_get_scores($attempt->id);
         foreach ($columns as $question) {
             $sections[$question['section']] = $question['section'];
@@ -205,25 +217,45 @@ function pgosce_export_average_summary_row(stdClass $student, array $attempts, a
         }
     }
 
+    foreach ($columns as $question) {
+        $sections[$question['section']] = $question['section'];
+    }
+
+    $markerlabel = 'Average of ' . $attemptcount . ' finalized marker' . ($attemptcount == 1 ? '' : 's');
+    if ($excludedcount > 0) {
+        $markerlabel .= ' (' . $excludedcount . ' draft' . ($excludedcount == 1 ? '' : 's') . ' excluded)';
+    }
+
     $totalearned = 0;
     $row = [
         $student->lastname,
         $student->firstname,
         $student->id,
         $student->email,
-        $allfinished ? 'Finished' : 'In progress',
-        'Average of ' . $attemptcount . ' marker' . ($attemptcount == 1 ? '' : 's'),
-        ($allfinished && $latestcompleted) ? userdate($latestcompleted) : '',
+        $attemptcount ? 'Finished' : 'Unmarked',
+        $markerlabel,
+        $latestcompleted ? userdate($latestcompleted) : '',
         implode(', ', $sections),
         '',
     ];
+
+    if (!$attemptcount) {
+        foreach ($columns as $question) {
+            $row[] = '';
+            foreach ($question['criteria'] as $unused) {
+                $row[] = '';
+            }
+        }
+        $row[] = '';
+        return $row;
+    }
 
     $questionvalues = [];
     foreach ($columns as $question) {
         $questiontotal = 0;
         $criterionvalues = [];
         foreach ($question['criteria'] as $criterion) {
-            $count = !empty($criterioncounts[$criterion['id']]) ? $criterioncounts[$criterion['id']] : $attemptcount;
+            $count = !empty($criterioncounts[$criterion['id']]) ? $criterioncounts[$criterion['id']] : 0;
             $average = $count ? $criteriontotals[$criterion['id']] / $count : 0;
             $questiontotal += $average;
             $criterionvalues[] = format_float($average, 2);
@@ -345,10 +377,17 @@ if ($mode === 'summaryavg' || $mode === 'summaryindividual') {
         }
         foreach ($byuser as $userid => $userattempts) {
             $student = core_user::get_user($userid);
+            $finalattempts = pgosce_export_final_attempts($userattempts);
+            $attemptcount = count($finalattempts);
+            $excludedcount = count($userattempts) - $attemptcount;
+            $markerlabel = 'Average of ' . $attemptcount . ' finalized marker' . ($attemptcount == 1 ? '' : 's');
+            if ($excludedcount > 0) {
+                $markerlabel .= ' (' . $excludedcount . ' draft' . ($excludedcount == 1 ? '' : 's') . ' excluded)';
+            }
             $criteriontotals = [];
             $criterioncounts = [];
             $totalearned = 0;
-            foreach ($userattempts as $attempt) {
+            foreach ($finalattempts as $attempt) {
                 $scores = pgosce_get_scores($attempt->id);
                 foreach ($columns as $question) {
                     foreach ($question['criteria'] as $criterion) {
@@ -363,32 +402,34 @@ if ($mode === 'summaryavg' || $mode === 'summaryindividual') {
                     }
                 }
             }
-            foreach ($columns as $question) {
-                foreach ($question['criteria'] as $criterion) {
-                    $count = !empty($criterioncounts[$criterion['id']]) ? $criterioncounts[$criterion['id']] : count($userattempts);
-                    $mark = $count ? $criteriontotals[$criterion['id']] / $count : 0;
-                    $totalearned += $mark;
+            if ($attemptcount) {
+                foreach ($columns as $question) {
+                    foreach ($question['criteria'] as $criterion) {
+                        $count = !empty($criterioncounts[$criterion['id']]) ? $criterioncounts[$criterion['id']] : 0;
+                        $mark = $count ? $criteriontotals[$criterion['id']] / $count : 0;
+                        $totalearned += $mark;
+                    }
                 }
             }
             $percent = $totalmax > 0 ? ($totalearned / $totalmax) * 100 : 0;
             foreach ($columns as $question) {
                 foreach ($question['criteria'] as $criterion) {
-                    $count = !empty($criterioncounts[$criterion['id']]) ? $criterioncounts[$criterion['id']] : count($userattempts);
-                    $mark = $count ? $criteriontotals[$criterion['id']] / $count : 0;
+                    $count = !empty($criterioncounts[$criterion['id']]) ? $criterioncounts[$criterion['id']] : 0;
+                    $mark = ($attemptcount && $count) ? $criteriontotals[$criterion['id']] / $count : null;
                     fputcsv($out, [
                         $student->id,
                         fullname($student),
                         '',
-                        'Average of ' . count($userattempts) . ' marker' . (count($userattempts) == 1 ? '' : 's'),
-                        '',
+                        $markerlabel,
+                        $attemptcount ? 'Finished' : 'Unmarked',
                         $question['section'],
                         $question['title'],
                         pgosce_export_text($criterion['description']),
-                        format_float($mark, 2),
+                        $mark === null ? '' : format_float($mark, 2),
                         $criterion['maxmark'],
                         '',
-                        format_float($totalearned, 2),
-                        format_float($percent, 2),
+                        $attemptcount ? format_float($totalearned, 2) : '',
+                        $attemptcount ? format_float($percent, 2) : '',
                         '',
                     ]);
                 }
