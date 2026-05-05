@@ -342,7 +342,6 @@ function pgosce_export_gift(stdClass $pgosce) {
         'ShowStudentInstructions: ' . (empty($pgosce->showstudentinstructions) ? 'no' : 'yes'),
         'ReleaseStudentReports: ' . (empty($pgosce->displaystudentreports) ? 'no' : 'yes'),
         'ShowGradesInGradebook: ' . (empty($pgosce->showgradesingradebook) ? 'no' : 'yes'),
-        'AssessorIDNumberOnly: ' . (empty($pgosce->assessoridnumberonly) ? 'no' : 'yes'),
         '',
     ];
 
@@ -504,9 +503,6 @@ function pgosce_parse_gift_settings($text) {
         }
         if (preg_match('/^ShowGradesInGradebook\s*:\s*(yes|no|1|0|true|false)$/i', $line, $matches)) {
             $settings['showgradesingradebook'] = in_array(strtolower($matches[1]), ['yes', '1', 'true']) ? 1 : 0;
-        }
-        if (preg_match('/^AssessorIDNumberOnly\s*:\s*(yes|no|1|0|true|false)$/i', $line, $matches)) {
-            $settings['assessoridnumberonly'] = in_array(strtolower($matches[1]), ['yes', '1', 'true']) ? 1 : 0;
         }
     }
 
@@ -904,19 +900,25 @@ function pgosce_get_students(context_module $context) {
  * @return string
  */
 function pgosce_get_student_identifier(stdClass $student) {
+    $identifiers = [
+        html_writer::span(get_string('moodleuseridvalue', 'pgosce', (int)$student->id),
+            'pgosce-student-identifier-item'),
+    ];
+
     $idnumber = isset($student->idnumber) ? trim($student->idnumber) : '';
     if ($idnumber !== '') {
-        return get_string('studentidvalue', 'pgosce', s($idnumber));
+        $identifiers[] = html_writer::span(get_string('studentidvalue', 'pgosce', s($idnumber)),
+            'pgosce-student-identifier-item');
     }
 
-    return get_string('moodleuseridvalue', 'pgosce', (int)$student->id);
+    return implode('', $identifiers);
 }
 
 /**
  * Format student identity for the current assessor/editor view.
  *
- * Editing teachers, managers and admins see name plus ID. Assigned non-editing
- * teachers can be restricted to ID only for blind or privacy-sensitive marking.
+ * Editing teachers, managers, admins and course creators see name plus Moodle
+ * user identifiers. Assigned non-editing teachers see identifiers only.
  *
  * @param stdClass $student
  * @param stdClass $pgosce
@@ -925,13 +927,39 @@ function pgosce_get_student_identifier(stdClass $student) {
  */
 function pgosce_format_student_display(stdClass $student, stdClass $pgosce, context_module $context) {
     $identifier = pgosce_get_student_identifier($student);
-    if (!pgosce_has_full_access($context) && has_capability('mod/pgosce:assess', $context) &&
-            !empty($pgosce->assessoridnumberonly)) {
+    if (!pgosce_can_view_student_names($context) && has_capability('mod/pgosce:assess', $context)) {
         return html_writer::span($identifier, 'pgosce-student-identifier');
     }
 
     return html_writer::span(s(fullname($student)), 'pgosce-student-fullname') .
         html_writer::span($identifier, 'text-muted small d-block pgosce-student-identifier');
+}
+
+/**
+ * Can the current user see student names in assessor/editor views?
+ *
+ * @param context_module $context
+ * @param int|null $userid
+ * @return bool
+ */
+function pgosce_can_view_student_names(context_module $context, $userid = null) {
+    global $USER;
+
+    if ($userid === null) {
+        $userid = $USER->id;
+    }
+
+    if (pgosce_has_full_access($context, $userid)) {
+        return true;
+    }
+
+    $coursecontext = $context->get_course_context(IGNORE_MISSING);
+    if ($coursecontext && (has_capability('moodle/course:update', $coursecontext, $userid) ||
+            has_capability('moodle/course:create', $coursecontext, $userid))) {
+        return true;
+    }
+
+    return has_capability('moodle/course:create', context_system::instance(), $userid);
 }
 
 /**
