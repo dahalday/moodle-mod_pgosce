@@ -15,6 +15,7 @@
         <FIELD NAME="showstudentinstructions" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="showgradesingradebook" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="assessoridnumberonly" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="assessoridentifierdisplay" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="both" SEQUENCE="false"/>
         <FIELD NAME="markinputtype" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="buttons" SEQUENCE="false"/>
         <FIELD NAME="markbuttonstep" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0.5" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="timelimit" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

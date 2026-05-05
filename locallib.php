@@ -342,6 +342,7 @@ function pgosce_export_gift(stdClass $pgosce) {
         'ShowStudentInstructions: ' . (empty($pgosce->showstudentinstructions) ? 'no' : 'yes'),
         'ReleaseStudentReports: ' . (empty($pgosce->displaystudentreports) ? 'no' : 'yes'),
         'ShowGradesInGradebook: ' . (empty($pgosce->showgradesingradebook) ? 'no' : 'yes'),
+        'AssessorIdentifierDisplay: ' . (empty($pgosce->assessoridentifierdisplay) ? 'both' : $pgosce->assessoridentifierdisplay),
         '',
     ];
 
@@ -401,7 +402,7 @@ function pgosce_parse_gift($text) {
 
         if (strpos($line, '#') === 0 || preg_match('/^::\s*Station\s*::/i', $line) ||
                 preg_match('/^\[Settings\]$/i', $line) ||
-                preg_match('/^(ShowStudentInstructions|ReleaseStudentReports|ShowGradesInGradebook|AssessorIDNumberOnly)\s*:/i', $line)) {
+                preg_match('/^(ShowStudentInstructions|ReleaseStudentReports|ShowGradesInGradebook|AssessorIDNumberOnly|AssessorIdentifierDisplay)\s*:/i', $line)) {
             continue;
         }
 
@@ -503,6 +504,9 @@ function pgosce_parse_gift_settings($text) {
         }
         if (preg_match('/^ShowGradesInGradebook\s*:\s*(yes|no|1|0|true|false)$/i', $line, $matches)) {
             $settings['showgradesingradebook'] = in_array(strtolower($matches[1]), ['yes', '1', 'true']) ? 1 : 0;
+        }
+        if (preg_match('/^AssessorIdentifierDisplay\s*:\s*(both|moodleuserid|idnumber)$/i', $line, $matches)) {
+            $settings['assessoridentifierdisplay'] = strtolower($matches[1]);
         }
     }
 
@@ -899,19 +903,23 @@ function pgosce_get_students(context_module $context) {
  * @param stdClass $student
  * @return string
  */
-function pgosce_get_student_identifier(stdClass $student) {
-    $identifiers = [
-        html_writer::span(get_string('moodleuseridvalue', 'pgosce', (int)$student->id),
-            'pgosce-student-identifier-item'),
-    ];
+function pgosce_get_student_identifier(stdClass $student, $mode = 'both') {
+    if (!in_array($mode, ['both', 'moodleuserid', 'idnumber'])) {
+        $mode = 'both';
+    }
 
+    $identifiers = [];
     $idnumber = isset($student->idnumber) ? trim($student->idnumber) : '';
-    if ($idnumber !== '') {
+    if ($mode === 'both' || $mode === 'moodleuserid' || ($mode === 'idnumber' && $idnumber === '')) {
+        $identifiers[] = html_writer::span(get_string('moodleuseridvalue', 'pgosce', (int)$student->id),
+            'pgosce-student-identifier-item');
+    }
+    if (($mode === 'both' || $mode === 'idnumber') && $idnumber !== '') {
         $identifiers[] = html_writer::span(get_string('studentidvalue', 'pgosce', s($idnumber)),
             'pgosce-student-identifier-item');
     }
 
-    return implode('', $identifiers);
+    return implode(' ', $identifiers);
 }
 
 /**
@@ -926,9 +934,10 @@ function pgosce_get_student_identifier(stdClass $student) {
  * @return string
  */
 function pgosce_format_student_display(stdClass $student, stdClass $pgosce, context_module $context) {
-    $identifier = pgosce_get_student_identifier($student);
+    $identifier = pgosce_get_student_identifier($student, 'both');
     if (!pgosce_can_view_student_names($context) && has_capability('mod/pgosce:assess', $context)) {
-        return html_writer::span($identifier, 'pgosce-student-identifier');
+        $mode = empty($pgosce->assessoridentifierdisplay) ? 'both' : $pgosce->assessoridentifierdisplay;
+        return html_writer::span(pgosce_get_student_identifier($student, $mode), 'pgosce-student-identifier');
     }
 
     return html_writer::span(s(fullname($student)), 'pgosce-student-fullname') .

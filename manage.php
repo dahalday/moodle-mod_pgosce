@@ -378,15 +378,21 @@ if (data_submitted() && confirm_sesskey()) {
     }
     $showstudentinstructions = optional_param('showstudentinstructions', 0, PARAM_BOOL);
     $showgradesingradebook = optional_param('showgradesingradebook', 0, PARAM_BOOL);
+    $assessoridentifierdisplay = optional_param('assessoridentifierdisplay', 'both', PARAM_ALPHA);
+    if (!in_array($assessoridentifierdisplay, ['both', 'moodleuserid', 'idnumber'])) {
+        $assessoridentifierdisplay = 'both';
+    }
     if (!empty($rubric)) {
         $DB->update_record('pgosce', (object)[
             'id' => $pgosce->id,
             'showstudentinstructions' => $showstudentinstructions,
             'showgradesingradebook' => $showgradesingradebook,
+            'assessoridentifierdisplay' => $assessoridentifierdisplay,
             'timemodified' => time(),
         ]);
         $pgosce->showstudentinstructions = $showstudentinstructions;
         $pgosce->showgradesingradebook = $showgradesingradebook;
+        $pgosce->assessoridentifierdisplay = $assessoridentifierdisplay;
         pgosce_save_rubric_array($pgosce->id, $rubric, $context);
         pgosce_update_grades($pgosce, 0, false);
         rebuild_course_cache($course->id, true);
@@ -399,10 +405,12 @@ if (data_submitted() && confirm_sesskey()) {
             'id' => $pgosce->id,
             'showstudentinstructions' => $showstudentinstructions,
             'showgradesingradebook' => $showgradesingradebook,
+            'assessoridentifierdisplay' => $assessoridentifierdisplay,
             'timemodified' => time(),
         ]);
         $pgosce->showstudentinstructions = $showstudentinstructions;
         $pgosce->showgradesingradebook = $showgradesingradebook;
+        $pgosce->assessoridentifierdisplay = $assessoridentifierdisplay;
         pgosce_update_grades($pgosce, 0, false);
         rebuild_course_cache($course->id, true);
         redirect($PAGE->url, get_string('rubricsaved', 'pgosce'), null, \core\output\notification::NOTIFY_SUCCESS);
@@ -570,6 +578,19 @@ echo html_writer::checkbox(
     ['id' => 'id_showstudentinstructions']
 );
 echo html_writer::div(get_string('showstudentinstructions_help', 'pgosce'), 'form-text text-muted');
+echo html_writer::end_div();
+echo html_writer::end_div();
+echo html_writer::start_div('card mb-3');
+echo html_writer::start_div('card-body');
+echo html_writer::tag('h4', get_string('assessorprivacysettings', 'pgosce'));
+echo html_writer::label(get_string('assessoridentifierdisplay', 'pgosce'), 'id_assessoridentifierdisplay');
+echo html_writer::select([
+    'both' => get_string('assessoridentifierboth', 'pgosce'),
+    'moodleuserid' => get_string('assessoridentifiermoodleuserid', 'pgosce'),
+    'idnumber' => get_string('assessoridentifieridnumber', 'pgosce'),
+], 'assessoridentifierdisplay', empty($pgosce->assessoridentifierdisplay) ? 'both' : $pgosce->assessoridentifierdisplay,
+    false, ['id' => 'id_assessoridentifierdisplay', 'class' => 'custom-select form-control']);
+echo html_writer::div(get_string('assessoridentifierdisplay_help', 'pgosce'), 'form-text text-muted');
 echo html_writer::end_div();
 echo html_writer::end_div();
 echo html_writer::start_div('', ['id' => 'pgosce-rubric-editor']);

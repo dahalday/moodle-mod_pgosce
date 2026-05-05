@@ -74,9 +74,10 @@ Non-editing teachers can assess only when they are assigned as a course default 
 assigned to the individual station. They do not receive rubric editing, station import/export or marks
 download permissions by default. Editing teachers, managers and admins keep full access.
 
-Assigned non-editing teachers see each candidate by **Moodle user ID** and the optional Moodle
-`idnumber` field only, not by student name. Editing teachers, managers, admins and course creators
-see the student name, Moodle user ID and optional `idnumber`.
+Editing teachers, managers, admins and course creators can choose whether assigned non-editing
+teachers see **Moodle user ID**, Moodle `idnumber`, or both. Non-editing teachers do not see
+student names. Editing teachers, managers, admins and course creators see the student name,
+Moodle user ID and optional `idnumber`.
 
 Teachers can turn **Show section instructions to students** on or off in the activity settings or from
 the **Edit rubric** page. When enabled, students can see the section names and section descriptions
@@ -110,6 +111,7 @@ Basic format:
 ShowStudentInstructions: yes
 ReleaseStudentReports: no
 ShowGradesInGradebook: yes
+AssessorIdentifierDisplay: both
 
 [Section] GTN
 Candidate's instructions:
@@ -165,6 +167,7 @@ Rules:
   ShowStudentInstructions: no
   ReleaseStudentReports: no
   ShowGradesInGradebook: yes
+  AssessorIdentifierDisplay: both
 - Put candidate-facing scenario/instructions under [Section].
 - If the Word document has multiple stations or domains, create one [Section] per station/domain.
 - Put each examiner question under [Question].
